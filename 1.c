@@ -78,6 +78,9 @@ int main(int argc, char *argv[]) {
                 if (b == 'w' || b == 'd' || b == 'a' || b == 's') {
                     a = b;
                 }
+            }
+        }
+    }
 
     free(arr);
 

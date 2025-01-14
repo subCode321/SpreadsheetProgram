@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
     int curry = 0;
 
     printer(currx, curry, arr, C, R);
+
     char *a = (char *)malloc(200 * sizeof(char));
 
     int flag = 0;
@@ -42,36 +43,44 @@ int main(int argc, char *argv[]) {
         scanf(" %s", a);
 
         if (a[0] == 'w') {
-            if (curry <= 10) {
+
+            if (curry < 10) {
                 flag = 1;
             } else {
                 curry -= 10;
-                printer(currx, curry, arr, C, R);
+                printer(currx, curry, arr, C);
+
+       
             }
         } else if (a[0] == 'd') {
-            if (currx >= C - 10) {
+            if (currx > C - 10) {
                 flag = 1;
             } else {
+
                 currx += 10;
-                printer(currx, curry, arr, C, R);
+                printer(currx, curry, arr, C);
             }
         } else if (a[0] == 'a') {
-            if (currx <= 10) {
+            if (currx < 10) {
                 flag = 1;
             } else {
                 currx -= 10;
-                printer(currx, curry, arr, C, R);
+                printer(currx, curry, arr, C);
+                
+            }
+
             }
         } else if (a[0] == 's') {
-            if (curry >= R - 10) {
+            if (curry > R - 10) {
                 flag = 1;
             } else {
                 curry += 10;
-                printer(currx, curry, arr, C, R);
+                printer(currx, curry, arr, C);
             }
         } else if (a[0] == 'q') {
             break;
-        } else {
+        }
+        else {
             printf("unrecognized command");
         }
         if (flag) {
@@ -80,6 +89,9 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Ok\n");
         }
+
+        free(a);
+        char *a = (char *)malloc(200 * sizeof(char));
     }
 
     free(arr);
@@ -87,3 +99,7 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
+
+
+

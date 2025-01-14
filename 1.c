@@ -29,65 +29,69 @@ int main(int argc, char *argv[]) {
     int curry = 0;
 
     printer(currx, curry, arr, C);
-    char a = 'n';
+    char *a = (char *)malloc(200 * sizeof(char));
 
     int flag = 0;
     while (1) {
-        if (a != 'n') {
-            if (a == 'w') {
-                if (curry < 10) {
-                    flag = 1;
-                } else {
-                    curry -= 10;
-                    printer(currx, curry, arr, C);
-                }
-            } else if (a == 'd') {
-                if (currx > C - 10) {
-                    flag = 1;
-                } else {
-                    currx += 10;
-                    printer(currx, curry, arr, C);
-                }
-            } else if (a == 'a') {
-                if (currx < 10) {
-                    flag = 1;
-                } else {
-                    currx -= 10;
-                    printer(currx, curry, arr, C);
-                }
-            } else if (a == 's') {
-                if (curry > R - 10) {
-                    flag = 1;
-                } else {
-                    curry += 10;
-                    printer(currx, curry, arr, C);
-                }
+
+        scanf(" %s", a);
+
+        if (a[0] == 'w') {
+            if (curry < 10) {
+                flag = 1;
             } else {
-                break;
+                curry -= 10;
+                printer(currx, curry, arr, C);
+
+       
             }
-            if (flag) {
-                printf("Invalid");
-                flag = 0;
+        } else if (a[0] == 'd') {
+            if (currx > C - 10) {
+                flag = 1;
             } else {
-                printf("Ok");
+
+                currx += 10;
+                printer(currx, curry, arr, C);
             }
-            a = 'n';
-        } else {
-            char b;
-            scanf(" %c", &b);
-            if (b != '\0') {
-                if (b == 'w' || b == 'd' || b == 'a' || b == 's' || b == 'q') {
-                    a = b;
-                }
-                else {
-                    printf("unrecognized cmd");
-                }
+        } else if (a[0] == 'a') {
+            if (currx < 10) {
+                flag = 1;
+            } else {
+                currx -= 10;
+                printer(currx, curry, arr, C);
+                
+            }
 
             }
+        } else if (a[0] == 's') {
+            if (curry > R - 10) {
+                flag = 1;
+            } else {
+                curry += 10;
+                printer(currx, curry, arr, C);
+            }
+        } else if (a[0] == 'q') {
+            break;
         }
+        else {
+            printf("unrecognized command");
+        }
+        if (flag) {
+            printf("Invalid\n");
+            flag = 0;
+        } else {
+            printf("Ok\n");
+        }
+
+        free(a);
+        char *a = (char *)malloc(200 * sizeof(char));
     }
 
     free(arr);
 
     return 0;
 }
+
+
+
+

@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
 
     int flag = 0;
     while (1) {
+
         scanf(" %s", a);
 
         if (a[0] == 'w') {
@@ -41,11 +42,14 @@ int main(int argc, char *argv[]) {
             } else {
                 curry -= 10;
                 printer(currx, curry, arr, C);
+
+       
             }
         } else if (a[0] == 'd') {
             if (currx > C - 10) {
                 flag = 1;
             } else {
+
                 currx += 10;
                 printer(currx, curry, arr, C);
             }
@@ -55,6 +59,9 @@ int main(int argc, char *argv[]) {
             } else {
                 currx -= 10;
                 printer(currx, curry, arr, C);
+                
+            }
+
             }
         } else if (a[0] == 's') {
             if (curry > R - 10) {

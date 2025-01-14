@@ -4,7 +4,7 @@
 void printer(int currx, int curry, int *arr, int C) {
     for (int i = 0; i < 10; i++) {
         for (int j = 0; j < 10; j++) {
-            printf("%d ", arr[C * (currx + i) + (curry + j)]);
+            printf("%d ", arr[(currx + i) + C * (curry + j)]);
         }
         printf("\n");
     }
@@ -55,29 +55,34 @@ int main(int argc, char *argv[]) {
                     currx -= 10;
                     printer(currx, curry, arr, C);
                 }
-            } else {
+            } else if (a == 's') {
                 if (curry > R - 10) {
                     flag = 1;
                 } else {
                     curry += 10;
                     printer(currx, curry, arr, C);
                 }
+            } else {
+                break;
             }
             if (flag) {
                 printf("Invalid");
                 flag = 0;
             } else {
                 printf("Ok");
-
             }
             a = 'n';
         } else {
             char b;
             scanf(" %c", &b);
             if (b != '\0') {
-                if (b == 'w' || b == 'd' || b == 'a' || b == 's') {
+                if (b == 'w' || b == 'd' || b == 'a' || b == 's' || b == 'q') {
                     a = b;
                 }
+                else {
+                    printf("unrecognized cmd");
+                }
+
             }
         }
     }

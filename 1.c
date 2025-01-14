@@ -116,6 +116,10 @@ int main(int argc, char *argv[])
         {
             printf("Ok\n");
         }
+        
+
+        free(a);
+        char *a = (char *)malloc(200 * sizeof(char));
     }
 
     free(arr);

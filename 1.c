@@ -1,9 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void printer(int currx, int curry, int *arr, int C) {
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
+int min(int x, int y) {
+    if (x > y) return y;
+    else return x;
+}
+void printer(int currx, int curry, int *arr, int C, int R) {
+
+    for (int j = 0; j < min(10, R - curry); j++) {
+        for (int i = 0; i < min(10, C - currx); i++) {
             printf("%d ", arr[(currx + i) + C * (curry + j)]);
         }
         printf("\n");
@@ -28,66 +33,57 @@ int main(int argc, char *argv[]) {
     int currx = 0;
     int curry = 0;
 
-    printer(currx, curry, arr, C);
-    char a = 'n';
+    printer(currx, curry, arr, C, R);
+    char *a = (char *)malloc(200 * sizeof(char));
 
     int flag = 0;
     while (1) {
-        if (a != 'n') {
-            if (a == 'w') {
-                if (curry < 10) {
-                    flag = 1;
-                } else {
-                    curry -= 10;
-                    printer(currx, curry, arr, C);
-                }
-            } else if (a == 'd') {
-                if (currx > C - 10) {
-                    flag = 1;
-                } else {
-                    currx += 10;
-                    printer(currx, curry, arr, C);
-                }
-            } else if (a == 'a') {
-                if (currx < 10) {
-                    flag = 1;
-                } else {
-                    currx -= 10;
-                    printer(currx, curry, arr, C);
-                }
-            } else if (a == 's') {
-                if (curry > R - 10) {
-                    flag = 1;
-                } else {
-                    curry += 10;
-                    printer(currx, curry, arr, C);
-                }
-            } else {
-                break;
-            }
-            if (flag) {
-                printf("Invalid");
-                flag = 0;
-            } else {
-                printf("Ok");
-            }
-            a = 'n';
-        } else {
-            char b;
-            scanf(" %c", &b);
-            if (b != '\0') {
-                if (b == 'w' || b == 'd' || b == 'a' || b == 's' || b == 'q') {
-                    a = b;
-                }
-                else {
-                    printf("unrecognized cmd");
-                }
 
+        scanf(" %s", a);
+
+        if (a[0] == 'w') {
+            if (curry <= 10) {
+                flag = 1;
+            } else {
+                curry -= 10;
+                printer(currx, curry, arr, C, R);
             }
+        } else if (a[0] == 'd') {
+            if (currx >= C - 10) {
+                flag = 1;
+            } else {
+                currx += 10;
+                printer(currx, curry, arr, C, R);
+            }
+        } else if (a[0] == 'a') {
+            if (currx <= 10) {
+                flag = 1;
+            } else {
+                currx -= 10;
+                printer(currx, curry, arr, C, R);
+            }
+        } else if (a[0] == 's') {
+            if (curry >= R - 10) {
+                flag = 1;
+            } else {
+                curry += 10;
+                printer(currx, curry, arr, C, R);
+            }
+        } else if (a[0] == 'q') {
+            break;
+        } else {
+            printf("unrecognized command");
+        }
+        if (flag) {
+            printf("Invalid\n");
+            flag = 0;
+        } else {
+            printf("Ok\n");
         }
     }
 
     free(arr);
+    free(a);
 
     return 0;
 }

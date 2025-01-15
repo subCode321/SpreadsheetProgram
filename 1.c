@@ -11,6 +11,7 @@ int min(int x, int y)
 
 void printer(int currx, int curry, int *arr, int C, int R)
 {
+    printf("       ");
 
     for (int i = 0; i < min(10, C - currx); i++)
     {
@@ -30,15 +31,16 @@ void printer(int currx, int curry, int *arr, int C, int R)
         {
             printf("%c", s[j]);
         }
-        printf(" ");
+        printf("      ");
     }
     printf("\n");
 
     for (int j = 0; j < min(10, R - curry); j++)
-    {
+    {   
+        printf("%d      ", curry + j + 1);
         for (int i = 0; i < min(10, C - currx); i++)
         {
-            printf("%d ", arr[(currx + i) + C * (curry + j)]);
+            printf("%d      ", arr[(currx + i) + C * (curry + j)]);
         }
         printf("\n");
     }

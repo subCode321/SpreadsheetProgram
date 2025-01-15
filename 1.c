@@ -12,20 +12,22 @@ int min(int x, int y)
 void printer(int currx, int curry, int *arr, int C, int R)
 {
 
-    for (int i = 0; i < min(10, C - currx); i++) {
-        int val = currx + i + 1; 
-        char s[5];             
+    for (int i = 0; i < min(10, C - currx); i++)
+    {
+        int val = currx + i + 1;
+        char s[5];
         int idx = 0;
 
-    
-        while (val > 0) {
-            val--;               
+        while (val > 0)
+        {
+            val--;
             s[idx++] = 'A' + (val % 26);
             val /= 26;
         }
-        s[idx] = '\0';           
-        
-        for (int j = idx - 1; j >= 0; j--) {
+        s[idx] = '\0';
+
+        for (int j = idx - 1; j >= 0; j--)
+        {
             printf("%c", s[j]);
         }
         printf(" ");
@@ -145,11 +147,9 @@ int main(int argc, char *argv[])
         {
             scroller(a, arr, &currx, &curry, C, R);
         }
-        
 
+    }
     free(arr);
     free(a);
-    }
     return 0;
 }
-

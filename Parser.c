@@ -24,34 +24,39 @@ int cell_parser(char *a, int C, int R, int start, int end)
     }
     return C * cell_col + cell_row;
 }
-void parser(char *a, int C, int R)
+
+void value(char *a, int C, int R, int pos_equalto, int pos_end)
 {
+    int first_cell;
 
-    if (a[0] == 'w' || a[0] == 'd' || a[0] == 'a' || a[0] == 's')
-    {
-        ;
-    }
-    int pos_equalto = -1;
-    int pos_end = -1;
-
-    for (int i = 0; a[i] != '\0'; i++)
-    {
-        if (a[i] == '=' && pos_equalto == -1)
-            pos_equalto = i;
-        pos_end = i;
-    }
-    pos_end++;
-
-    if (pos_equalto == -1)
-    {
-        printf("Invalid input");
-        return;
-    }
-    if (cell_parser(a, C, R, 0, pos_equalto - 1) == -1)
+    if ((first_cell = cell_parser(a, C, R, 0, pos_equalto - 1)) == -1)
     {
         printf("Invalid cell");
         return;
     }
+}
+
+void arth_op(char *a, int C, int R, int pos_equalto, int pos_end)
+{
+    int first_cell;
+
+    if ((first_cell = cell_parser(a, C, R, 0, pos_equalto - 1)) == -1)
+    {
+        printf("Invalid cell");
+        return;
+    }
+}
+
+void func(char *a, int C, int R, int pos_equalto, int pos_end)
+{
+    int first_cell;
+
+    if ((first_cell = cell_parser(a, C, R, 0, pos_equalto - 1)) == -1)
+    {
+        printf("Invalid cell");
+        return;
+    }
+
     if (pos_end - pos_equalto >= 3)
     {
         if (pos_end - pos_equalto >= 5)
@@ -79,6 +84,54 @@ void parser(char *a, int C, int R)
             }
         }
     }
+}
+
+void parser(char *a, int C, int R)
+{
+
+    if (a[0] == 'w' || a[0] == 'd' || a[0] == 'a' || a[0] == 's')
+    {
+        ;
+    }
+    int pos_equalto = -1;
+    int pos_end = -1;
+
+    for (int i = 0; a[i] != '\0'; i++)
+    {
+        if (a[i] == '=' && pos_equalto == -1)
+            pos_equalto = i;
+        pos_end = i;
+    }
+    pos_end++;
+
+    if (pos_equalto == -1)
+    {
+        printf("Invalid input");
+        return;
+    }
+
+    int value = 0;
+    int arth_exp = 0;
+    int func = 0;
+
+    for (int i = pos_equalto + 1; i < pos_end; i++) {
+        if (a[i] == ':') {
+            func = 1;
+            break;
+        }
+        if (a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/') {
+            arth_exp = 1;
+            break;
+        }
+    }
+    if (func == 1 && arth_exp == 1) {
+        printf("Invalid input");
+        return;
+    }
+    if (func == 0 && arth_exp == 0) {
+        value = 1;
+    }
+
 }
 
 int main()

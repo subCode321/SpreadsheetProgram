@@ -42,7 +42,7 @@ int cell_parser(char *a, int C, int R, int start, int end)
     return C * cell_col + cell_row;
 }
 
-void value(char *a, int C, int R, int pos_equalto, int pos_end)
+void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end)
 {
     int first_cell;
 
@@ -183,6 +183,7 @@ int parser(char *a, int C, int R)
     }
     if (func == 0 && arth_exp == 0) {
         value = 1;
+        valuefunc(a, C, R, pos_equalto, pos_end);
     }
 
     if (value == 1 || func == 1 || arth_exp == 1){

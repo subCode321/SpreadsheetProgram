@@ -79,10 +79,11 @@ int main(int argc, char *argv[])
         }
         
 
-        free(a);
-        free(arr);
 
     }
+
+    free(a);
+    free(arr);
 
     return 0;
 }

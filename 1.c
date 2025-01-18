@@ -150,8 +150,10 @@ int main(int argc, char *argv[])
             scroller(a, arr, &currx, &curry, C, R);
         }
 
+        free(a);
+        free(arr);
+
     }
-    free(arr);
-    free(a);
+
     return 0;
 }

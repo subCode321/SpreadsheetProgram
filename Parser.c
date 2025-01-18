@@ -16,9 +16,9 @@ int cell_parser(char *a, int C, int R, int start, int end)
             return -1;
     }
     cell_col -= 1;
-    cell_col -= 1;
+    cell_row -= 1;
 
-    if (cell_col == -1 || cell_col == -1)
+    if (cell_col == -1 || cell_row == -1)
     {
         return -1;
     }

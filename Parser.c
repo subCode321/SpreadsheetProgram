@@ -1,5 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+int isAlpha(char c)
+{
+    if (c >= 'A' && c <= 'Z')
+        return 1;
+    return 0;
+    
+}
+
+int isDigit(char c)
+{
+    if (c >= '0' && c <= '9')
+        return 1;
+    
+    return 0;
+}
 
 int cell_parser(char *a, int C, int R, int start, int end)
 {
@@ -8,9 +25,9 @@ int cell_parser(char *a, int C, int R, int start, int end)
 
     for (int i = start; i <= end; i++)
     {
-        if (isalpha(a[i]))
+        if (isAlpha(a[i]))
             cell_col = 26 * cell_col + (a[i] - 'A' + 1);
-        else if (isdigit(a[i]))
+        else if (isDigit(a[i]))
             cell_row = 10 * cell_row + (a[i] - '0');
         else
             return -1;
@@ -72,7 +89,8 @@ void func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         {
             if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'I' && a[pos_equalto + 3] == 'N')
             {
-                char *colon_pos = strchr(a, ':');
+                char colon = ':';
+                char *colon_pos = strchr(a, colon);
 
                 if (colon_pos == NULL)
                 {
@@ -122,7 +140,7 @@ void func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     }
 }
 
-void parser(char *a, int C, int R)
+int parser(char *a, int C, int R)
 {
 
     if (a[0] == 'w' || a[0] == 'd' || a[0] == 'a' || a[0] == 's')
@@ -142,8 +160,7 @@ void parser(char *a, int C, int R)
 
     if (pos_equalto == -1)
     {
-        printf("Invalid input");
-        return;
+        return -1;
     }
 
     int value = 0;
@@ -162,14 +179,18 @@ void parser(char *a, int C, int R)
     }
     if (func == 1 && arth_exp == 1) {
         printf("Invalid input");
-        return;
+        return -1;
     }
     if (func == 0 && arth_exp == 0) {
         value = 1;
     }
 
+    if (value == 1 || func == 1 || arth_exp == 1){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+
 }
 
-int main()
-{
-}

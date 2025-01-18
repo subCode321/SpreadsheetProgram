@@ -111,6 +111,6 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R)
     }
     else
     {
-        printf("Ok\n");
+        printf("ok\n");
     }
 }

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "display.h"
 #include <time.h>
+#include "Parser.h"
 
 int main(int argc, char *argv[])
 {
@@ -68,13 +69,13 @@ int main(int argc, char *argv[])
         printer(currx, curry, arr, C, R); 
 
         
-        if (status)
+        if (status > 0)
         {
-            printf("[%.6f] (ok)\n", time_taken);
+            printf("[%.6f] (ok)  ", time_taken);
         }
         else
         {
-            printf("[%.6f] (error: invalid command)\n", time_taken);
+            printf("[%.6f] (unrecognized command) ", time_taken);
         }
         
 

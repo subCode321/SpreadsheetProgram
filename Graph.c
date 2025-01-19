@@ -95,3 +95,54 @@ void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph) {
         graph->adjLists_tail[cell2] = new_cell;
     }
 }
+
+void Recalc(int cell, Graph *graph) {
+    Cell* x = graph->adjLists_head[cell];
+
+    while (x != NULL) {
+        if (x->op_type == 1) 
+        {
+        }
+        elif (x->op_type == 2)
+        {
+        }
+        elif (x->op_type == 3)
+        {
+        }
+        elif (x->op_type == 4)
+        {
+        }
+        elif (x->op_type == 5)
+        {
+        }
+        elif (x->op_type == 6)
+        {
+        }
+        elif (x->op_type == 7)
+        {
+        }
+        elif (x->op_type == 8)
+        {
+        }
+        elif (x->op_type == 9)
+        {
+        }
+        elif (x->op_type == 10)
+        {
+        }
+        elif (x->op_type == 11)
+        {
+        }
+        elif (x->op_type == 12)
+        {
+        }
+        elif (x->op_type == 13)
+        {
+        }
+        else
+        {
+        }
+        Recalc(x->cell, graph);
+        x = x->next;
+    }
+}

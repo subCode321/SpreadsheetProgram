@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "Functions.h"
 
 int isAlpha(char c)
 {
@@ -39,32 +40,120 @@ int cell_parser(char *a, int C, int R, int start, int end)
     {
         return -1;
     }
-    return C * cell_col + cell_row;
+    return C * cell_row + cell_col;
 }
 
-void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end)
+void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)   
 {
     int first_cell;
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
 
-    if ((first_cell = cell_parser(a, C, R, 0, pos_equalto - 1)) == -1)
+    if (first_cell == -1)
     {
         printf("Invalid cell");
         return;
     }
-}
-
-void arth_op(char *a, int C, int R, int pos_equalto, int pos_end)
-{
-    int first_cell;
-
-    if ((first_cell = cell_parser(a, C, R, 0, pos_equalto - 1)) == -1)
+    int second_cell = -1;
+    int is_cell = 0;
+    if (isDigit(a[pos_equalto + 1]))
     {
-        printf("Invalid cell");
+        char tmp[2] = {a[pos_equalto + 1], '\0'};
+        second_cell = atoi(tmp);
+    }
+    else
+    {
+        second_cell = cell_parser(a, C, R, pos_equalto + 1, pos_end - 1);
+        is_cell = 1;
+    }
+
+    if (second_cell == -1)
+    {
+        printf("Invalid\n");
         return;
     }
+    if (is_cell == 0)
+    {
+        arr[first_cell] = second_cell;
+        
+    }
+    else
+    {
+        int tmp = arr[second_cell];
+        arr[first_cell] = tmp;
+    }
+    
+
 }
 
-void func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
+{
+    int first_cell;
+    int second_cell;
+    int third_cell;
+    int res = 0;
+    int second_cell_check = 0;
+    int third_cell_check = 0;
+
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    int op = -1;
+
+    for (int i = pos_equalto + 1; i < pos_end; i++)
+    {
+        if (a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/')
+        {
+            op = i;
+            break;
+        }
+    }
+
+    if (isDigit(a[pos_equalto + 1]))
+    {
+        char tmp[2] = {a[pos_equalto + 1], '\0'};
+        second_cell = atoi(tmp);
+    }
+    else
+    {
+        second_cell = cell_parser(a, C, R, pos_equalto + 1, op - 1);
+        second_cell_check = 1;
+    }
+    if(isDigit(a[op + 1]))
+    {
+        char tmp[2] = {a[op + 1], '\0'};
+        third_cell = atoi(tmp);
+    }
+    else
+    {
+    third_cell = cell_parser(a, C, R, op + 1, pos_end - 1);
+    third_cell_check = 1;
+    }
+
+    if (first_cell == -1 || second_cell == -1 || third_cell == -1)
+    {
+        printf("Invalid command");
+        return;
+    }
+
+    if (second_cell_check==0 && third_cell_check==0){
+        res = arithmetic_eval(second_cell, third_cell, a[op]);
+        arr[first_cell] = res;
+    }
+
+    else if (second_cell_check==1 && third_cell_check==0){
+        res = arithmetic_eval(arr[second_cell], third_cell, a[op]); 
+        arr[first_cell] = res;
+    }
+    else if (second_cell_check==0 && third_cell_check==1){
+        res = arithmetic_eval(second_cell, arr[third_cell], a[op]); 
+        arr[first_cell] = res;
+    }
+    else if (second_cell_check==1 && third_cell_check==1){
+        res = arithmetic_eval(arr[second_cell], arr[third_cell], a[op]);
+        arr[first_cell] = res;
+    }
+    
+}
+
+void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
     int first_cell;
 
@@ -103,7 +192,7 @@ void func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     }
 }
 
-int parser(char *a, int C, int R)
+int parser(char *a, int C, int R,int *arr)
 {
 
     if (a[0] == 'w' || a[0] == 'd' || a[0] == 'a' || a[0] == 's')
@@ -146,7 +235,16 @@ int parser(char *a, int C, int R)
     }
     if (func == 0 && arth_exp == 0) {
         value = 1;
-        valuefunc(a, C, R, pos_equalto, pos_end);
+    }
+
+    if (value == 1) {
+        valuefunc(a, C, R, pos_equalto, pos_end,arr);
+    }
+    else if (arth_exp == 1) {
+        arth_op(a, C, R, pos_equalto, pos_end,arr);
+    }
+    else if (func == 1) {
+        funct(a, C, R, pos_equalto, pos_end,arr);
     }
 
     if (value == 1 || func == 1 || arth_exp == 1){

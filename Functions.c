@@ -1,4 +1,25 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "Parser.h"
+
+int arithmetic_eval(int v1, int v2, char op){
+    if (op == '+'){
+        return v1 + v2;
+    }
+    
+    else if (op == '-'){
+        return v1 - v2;
+    }
+    
+    else if (op == '*'){
+        return v1 * v2;
+    }
+    
+    else if (op == '/'){
+        return v1 / v2;
+    }
+}
 
 void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
@@ -60,6 +81,3 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
 }
 
-int main()
-{
-}

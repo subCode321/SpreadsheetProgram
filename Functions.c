@@ -3,6 +3,21 @@
 #include <stdlib.h>
 #include "Parser.h"
 
+int validate_range(int range_start, int range_end, int C) {
+    
+    int start_row = range_start / C;
+    int start_col = range_start % C;
+    int end_row = range_end / C;
+    int end_col = range_end % C;
+
+    if (start_row > end_row || (start_row == end_row && start_col > end_col)) {
+        // Invalid range: end cell comes before start cell
+        return 0;
+    }
+    return 1;
+}
+
+
 int arithmetic_eval(int v1, int v2, char op){
     if (op == '+'){
         return v1 + v2;
@@ -23,54 +38,255 @@ int arithmetic_eval(int v1, int v2, char op){
 
 void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
-    char colon = ':';
-    char *colon_pos = strchr(a, colon);
+    int first_cell;
 
-    if (colon_pos == NULL)
-    {
-        printf("Invalid range: Missing ':'\n");
-        return;
-    }
-
-    int range_start = cell_parser(a, C, R, pos_equalto + 5, colon_pos - a - 1);
-    int range_end = cell_parser(a, C, R, colon_pos - a + 1, pos_end - 1);
-
-    if (range_start == -1 || range_end == -1)
-    {
-        printf("Invalid range\n");
-        return;
-    }
-
-    int min_value = arr[range_start];
-    for (int idx = range_start + 1; idx <= range_end; idx++)
-    {
-        if (arr[idx] < min_value)
-        {
-            min_value = arr[idx];
-        }
-    }
-
-    int dest_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
-    if (dest_cell == -1)
+    
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    if (first_cell == -1)
     {
         printf("Invalid destination cell\n");
         return;
     }
 
-    arr[dest_cell] = min_value;
+    
+    char *open_paren = strchr(a + pos_equalto, '(');
+    char *close_paren = strchr(a + pos_equalto, ')');
+    if (!open_paren || !close_paren || close_paren <= open_paren + 1)
+    {
+        printf("Invalid range: Missing or misplaced parentheses\n");
+        return;
+    }
+
+    
+    char *colon_pos = strchr(open_paren + 1, ':');
+    if (!colon_pos)
+    {
+        printf("Invalid range: Missing ':'\n");
+        return;
+    }
+
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
+    {
+        printf("Invalid range\n");
+        return;
+    }
+
+    
+    int min_value = arr[range_start];
+
+    int start_row = range_start / C;
+    int start_col = range_start % C;
+    int end_row = range_end / C;
+    int end_col = range_end % C;
+
+    if (start_row == end_row) // 1D range (same row)
+    {
+        for (int idx = range_start; idx <= range_end; idx++)
+        {
+            if (arr[idx] < min_value)
+            {
+                min_value = arr[idx];
+            }
+        }
+    }
+    else // 2D range
+    {
+        for (int row = start_row; row <= end_row; row++)
+        {
+            int col_start = (row == start_row) ? start_col : 0;
+            int col_end = (row == end_row) ? end_col : C - 1;
+
+            for (int col = col_start; col <= col_end; col++)
+            {
+                int idx = row * C + col;
+                if (arr[idx] < min_value)
+                {
+                    min_value = arr[idx];
+                }
+            }
+        }
+    }
+
+    
+    arr[first_cell] = min_value;
+    printf("MIN function calculated: %d\n", min_value);
 
 }
 
-void max_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr) 
+void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
+    int first_cell;
+
+    
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    if (first_cell == -1)
+    {
+        printf("Invalid destination cell\n");
+        return;
+    }
+
+    
+    char *open_paren = strchr(a + pos_equalto, '(');
+    char *close_paren = strchr(a + pos_equalto, ')');
+    if (!open_paren || !close_paren || close_paren <= open_paren + 1)
+    {
+        printf("Invalid range: Missing or misplaced parentheses\n");
+        return;
+    }
+
+    
+    char *colon_pos = strchr(open_paren + 1, ':');
+    if (!colon_pos)
+    {
+        printf("Invalid range: Missing ':'\n");
+        return;
+    }
+
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
+    {
+        printf("Invalid range\n");
+        return;
+    }
+
+    
+    int max_value = arr[range_start];
+
+    int start_row = range_start / C;
+    int start_col = range_start % C;
+    int end_row = range_end / C;
+    int end_col = range_end % C;
+
+    if (start_row == end_row) 
+    {
+        for (int idx = range_start; idx <= range_end; idx++)
+        {
+            if (arr[idx] > max_value)
+            {
+                max_value = arr[idx];
+            }
+        }
+    }
+    else 
+    {
+        for (int row = start_row; row <= end_row; row++)
+        {
+            int col_start = (row == start_row) ? start_col : 0;
+            int col_end = (row == end_row) ? end_col : C - 1;
+
+            for (int col = col_start; col <= col_end; col++)
+            {
+                int idx = row * C + col;
+                if (arr[idx] > max_value)
+                {
+                    max_value = arr[idx];
+                }
+            }
+        }
+    }
+
+    // Store the maximum value in the destination cell
+    arr[first_cell] = max_value;
+    printf("MAX function calculated: %d\n", max_value);
 }
+
 
 void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
+    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    if (first_cell == -1) {
+        printf("Invalid destination cell\n");
+        return;
+    }
+
+    
+    char *open_paren = strchr(a + pos_equalto, '(');
+    char *close_paren = strchr(a + pos_equalto, ')');
+
+    if (!open_paren || !close_paren || close_paren <= open_paren + 1) {
+        printf("Invalid range: Missing or misplaced parentheses\n");
+        return;
+    }
+
+    char *colon_pos = strchr(open_paren + 1, ':');
+    if (!colon_pos) {
+        printf("Invalid range: Missing ':'\n");
+        return;
+    }
+
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C)) {
+        printf("Invalid range\n");
+        return;
+    }
+
+    
+    int sum = 0, count = 0;
+
+    for (int row = range_start / C; row <= range_end / C; row++) {
+        int col_start = (row == range_start / C) ? range_start % C : 0;
+        int col_end = (row == range_end / C) ? range_end % C : C - 1;
+
+        for (int col = col_start; col <= col_end; col++) {
+            int idx = row * C + col;
+            sum += arr[idx];
+            count++;
+        }
+    }
+
+    int avg_value = (count > 0) ? (sum / count) : 0;
+    arr[first_cell] = avg_value;
+    printf("AVG function calculated: %d\n", avg_value);
 }
 
 void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
+    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    if (first_cell == -1) {
+        printf("Invalid destination cell\n");
+        return;
+    }
+
+    // Parse the range
+    char *open_paren = strchr(a + pos_equalto, '(');
+    char *close_paren = strchr(a + pos_equalto, ')');
+    if (!open_paren || !close_paren || close_paren <= open_paren + 1) {
+        printf("Invalid range: Missing or misplaced parentheses\n");
+        return;
+    }
+
+    char *colon_pos = strchr(open_paren + 1, ':');
+    if (!colon_pos) {
+        printf("Invalid range: Missing ':'\n");
+        return;
+    }
+
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C)) {
+        printf("Invalid range\n");
+        return;
+    }
+
+    // Calculate SUM
+    int sum = 0;
+
+    for (int row = range_start / C; row <= range_end / C; row++) {
+        int col_start = (row == range_start / C) ? range_start % C : 0;
+        int col_end = (row == range_end / C) ? range_end % C : C - 1;
+
+        for (int col = col_start; col <= col_end; col++) {
+            int idx = row * C + col;
+            sum += arr[idx];
+        }
+    }
+
+    arr[first_cell] = sum;
+    printf("SUM function calculated: %d\n", sum);
 }
 
 void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)

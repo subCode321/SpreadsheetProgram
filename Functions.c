@@ -37,12 +37,12 @@ int arithmetic_eval(int v1, int v2, char op){
     }
 }
 
-void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
     int first_cell;
 
     
-    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1,graph);
     if (first_cell == -1)
     {
         printf("Invalid destination cell\n");
@@ -66,8 +66,8 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         return;
     }
 
-    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
-    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1,graph);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1,graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
         printf("Invalid range\n");
@@ -115,12 +115,12 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 
 }
 
-void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
     int first_cell;
 
     
-    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
         printf("Invalid destination cell\n");
@@ -144,8 +144,8 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         return;
     }
 
-    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
-    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1, graph);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1, graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
         printf("Invalid range\n");
@@ -193,9 +193,9 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 }
 
 
-void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
-    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1) {
         printf("Invalid destination cell\n");
         return;
@@ -216,8 +216,8 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         return;
     }
 
-    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
-    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1, graph);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1, graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C)) {
         printf("Invalid range\n");
         return;
@@ -245,9 +245,9 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     arr[first_cell] = avg_value;
 }
 
-void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
-    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1,graph);
     if (first_cell == -1) {
         printf("Invalid destination cell\n");
         return;
@@ -267,8 +267,8 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         return;
     }
 
-    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
-    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1,graph);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1,graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C)) {
         printf("Invalid range\n");
         return;
@@ -296,9 +296,9 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     arr[first_cell] = sum;
 }
 
-void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
-    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1,graph);
     if (first_cell == -1)
     {
         printf("Invalid destination cell\n");
@@ -321,8 +321,8 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         return;
     }
 
-    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1);
-    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1);
+    int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1,graph);
+    int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1,graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
         printf("Invalid range\n");

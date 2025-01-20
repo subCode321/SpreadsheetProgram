@@ -1,5 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "math.h"
 #define NUM_CELLS 18259722
+
 
 
 typedef struct Cell
@@ -97,7 +101,7 @@ void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph) {
     }
 }
 
-void Recalc(int cell, int new_value, Graph *graph, int cell_values[]) {
+void Recalc(int cell, int new_value, Graph *graph, int *cell_values) {
     int old_value;
 
     old_value=cell_values[cell];
@@ -167,7 +171,9 @@ void Recalc(int cell, int new_value, Graph *graph, int cell_values[]) {
         {
             ;
         }
-        Recalc(x->cell, dependent_new_value, graph);
+        Recalc(x->cell, dependent_new_value, graph, cell_values);
         x = x->next;
     }
+
+
 }

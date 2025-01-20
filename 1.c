@@ -3,9 +3,11 @@
 #include "display.h"
 #include <time.h>
 #include "Parser.h"
+#include "Graph.h"
 
 int main(int argc, char *argv[])
 {
+    Graph *graph = CreateGraph();
     if (argc != 3)
     {
         printf("Usage: %s <rows> <columns>\n", argv[0]);
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            status = parser(a, C, R, arr); 
+            status = parser(a, C, R, arr,graph); 
         }
 
         clock_t end = clock(); 

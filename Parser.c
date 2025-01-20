@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Functions.h"
+#include "Graph.h"
+
+
 
 int isAlpha(char c)
 {
@@ -19,7 +22,7 @@ int isDigit(char c)
     return 0;
 }
 
-int cell_parser(char *a, int C, int R, int start, int end)
+int cell_parser(char *a, int C, int R, int start, int end, Graph *graph)
 {
     int cell_col = 0;
     int cell_row = 0;
@@ -43,10 +46,10 @@ int cell_parser(char *a, int C, int R, int start, int end)
     return C * cell_row + cell_col;
 }
 
-void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)   
+void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)   
 {
     int first_cell;
-    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
 
     if (first_cell == -1)
     {
@@ -68,7 +71,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     }
     else
     {
-        second_cell = cell_parser(a, C, R, pos_equalto + 1, pos_end - 1);
+        second_cell = cell_parser(a, C, R, pos_equalto + 1, pos_end - 1,graph);
         is_cell = 1;
     }
 
@@ -80,18 +83,22 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     if (is_cell == 0)
     {
         arr[first_cell] = second_cell;
+        // Recalc(first_cell, second_cell, graph, arr);
         
     }
     else
     {
         int tmp = arr[second_cell];
         arr[first_cell] = tmp;
+        // Recalc(first_cell, second_cell, graph, arr);
     }
+    
+
     
 
 }
 
-void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
+void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph *graph)
 {
     int first_cell;
     int second_cell;
@@ -100,7 +107,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
     int second_cell_check = 0;
     int third_cell_check = 0;
 
-    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1);
+    first_cell = cell_parser(a, C, R, 0, pos_equalto - 1,graph);
     int op = -1;
 
     for (int i = pos_equalto + 1; i < pos_end; i++)
@@ -125,7 +132,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
     }
     else
     {
-        second_cell = cell_parser(a, C, R, pos_equalto + 1, op - 1);
+        second_cell = cell_parser(a, C, R, pos_equalto + 1, op - 1,graph);
         second_cell_check = 1;
     }
     if(isDigit(a[op + 1]))
@@ -142,7 +149,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
     }
     else
     {
-    third_cell = cell_parser(a, C, R, op + 1, pos_end - 1);
+    third_cell = cell_parser(a, C, R, op + 1, pos_end - 1,graph);
     third_cell_check = 1;
     }
 
@@ -160,22 +167,26 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
     else if (second_cell_check==1 && third_cell_check==0){
         res = arithmetic_eval(arr[second_cell], third_cell, a[op]); 
         arr[first_cell] = res;
+        // Addedge(second_cell, first_cell, 1, op, graph);
     }
     else if (second_cell_check==0 && third_cell_check==1){
         res = arithmetic_eval(second_cell, arr[third_cell], a[op]); 
         arr[first_cell] = res;
+        // Addedge(third_cell, first_cell, 1, op, graph);
     }
     else if (second_cell_check==1 && third_cell_check==1){
         res = arithmetic_eval(arr[second_cell], arr[third_cell], a[op]);
         arr[first_cell] = res;
+        // Addedge(second_cell, first_cell, 1, op, graph);
+        // Addedge(third_cell, first_cell, 1, op, graph);
     }
     
 }
 
-void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
     int first_cell;
-    first_cell = cell_parser(a,C,R,0,pos_equalto -1);
+    first_cell = cell_parser(a,C,R,0,pos_equalto -1,graph);
 
 
     if (first_cell  == -1)
@@ -212,19 +223,19 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         {
             if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'I' && a[pos_equalto + 3] == 'N')
             {
-                min_func(a, C, R, pos_equalto, pos_end, arr); 
+                min_func(a, C, R, pos_equalto, pos_end, arr,graph); 
             }
             else if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'A' && a[pos_equalto + 3] == 'X')
             {
-                maxfunc(a, C, R, pos_equalto, pos_end,arr);
+                maxfunc(a, C, R, pos_equalto, pos_end,arr,graph);
             }
             else if (a[pos_equalto + 1] == 'A' && a[pos_equalto + 2] == 'V' && a[pos_equalto + 3] == 'G')
             {
-                avg_func(a, C, R, pos_equalto, pos_end,arr);
+                avg_func(a, C, R, pos_equalto, pos_end,arr,graph);
             }
             else if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'U' && a[pos_equalto + 3] == 'M')
             {
-                sum_func(a, C, R, pos_equalto, pos_end,arr);
+                sum_func(a, C, R, pos_equalto, pos_end,arr,graph);
             }
         }
         else
@@ -238,7 +249,7 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     }
 }
 
-int parser(char *a, int C, int R,int *arr)
+int parser(char *a, int C, int R,int *arr,Graph *graph)
 {
 
     if (a[0] == 'w' || a[0] == 'd' || a[0] == 'a' || a[0] == 's')
@@ -284,14 +295,14 @@ int parser(char *a, int C, int R,int *arr)
     }
 
     if (value == 1) {
-        valuefunc(a, C, R, pos_equalto, pos_end,arr);
+        valuefunc(a, C, R, pos_equalto, pos_end,arr,graph);
     }
     else if (arth_exp == 1) {
-        arth_op(a, C, R, pos_equalto, pos_end,arr);
+        arth_op(a, C, R, pos_equalto, pos_end,arr,graph);
     }
     else if (func == 1) {
         
-        funct(a, C, R, pos_equalto, pos_end,arr);
+        funct(a, C, R, pos_equalto, pos_end,arr,graph);
     }
 
     if (value == 1 || func == 1 || arth_exp == 1){

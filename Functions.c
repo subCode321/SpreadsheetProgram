@@ -95,8 +95,8 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     {
         for (int row = start_row; row <= end_row; row++)
         {
-            int col_start = (row == start_row) ? start_col : 0;
-            int col_end = (row == end_row) ? end_col : C - 1;
+            int col_start = start_col;
+            int col_end = end_col;
 
             for (int col = col_start; col <= col_end; col++)
             {
@@ -111,7 +111,6 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 
     
     arr[first_cell] = min_value;
-    printf("MIN function calculated: %d\n", min_value);
 
 }
 
@@ -174,8 +173,8 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     {
         for (int row = start_row; row <= end_row; row++)
         {
-            int col_start = (row == start_row) ? start_col : 0;
-            int col_end = (row == end_row) ? end_col : C - 1;
+            int col_start = start_col;
+            int col_end = end_col;
 
             for (int col = col_start; col <= col_end; col++)
             {
@@ -190,7 +189,6 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 
     // Store the maximum value in the destination cell
     arr[first_cell] = max_value;
-    printf("MAX function calculated: %d\n", max_value);
 }
 
 
@@ -224,12 +222,16 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         return;
     }
 
-    
+    int start_row = range_start / C;
+    int start_col = range_start % C;
+    int end_row = range_end / C;
+    int end_col = range_end % C;
+
     int sum = 0, count = 0;
 
-    for (int row = range_start / C; row <= range_end / C; row++) {
-        int col_start = (row == range_start / C) ? range_start % C : 0;
-        int col_end = (row == range_end / C) ? range_end % C : C - 1;
+    for (int row = start_row; row <= end_row; row++) {
+        int col_start = start_col;
+        int col_end = end_col;
 
         for (int col = col_start; col <= col_end; col++) {
             int idx = row * C + col;
@@ -240,7 +242,6 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 
     int avg_value = (count > 0) ? (sum / count) : 0;
     arr[first_cell] = avg_value;
-    printf("AVG function calculated: %d\n", avg_value);
 }
 
 void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
@@ -270,14 +271,20 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C)) {
         printf("Invalid range\n");
         return;
+    
     }
+    int start_row = range_start / C;
+    int start_col = range_start % C;
+    int end_row = range_end / C;
+    int end_col = range_end % C;
 
     // Calculate SUM
     int sum = 0;
 
-    for (int row = range_start / C; row <= range_end / C; row++) {
-        int col_start = (row == range_start / C) ? range_start % C : 0;
-        int col_end = (row == range_end / C) ? range_end % C : C - 1;
+
+    for (int row = start_row; row <= end_row; row++) {
+        int col_start = start_col;
+        int col_end = end_col;
 
         for (int col = col_start; col <= col_end; col++) {
             int idx = row * C + col;
@@ -286,7 +293,6 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     }
 
     arr[first_cell] = sum;
-    printf("SUM function calculated: %d\n", sum);
 }
 
 void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)

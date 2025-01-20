@@ -57,8 +57,14 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
     int is_cell = 0;
     if (isDigit(a[pos_equalto + 1]))
     {
-        char tmp[2] = {a[pos_equalto + 1], '\0'};
+        char *tmp = (char *)malloc(20 * sizeof(char));
+        for(int i = pos_equalto + 1; i < pos_end; i++)
+        {
+            tmp[i - pos_equalto - 1] = a[i];
+        }
+        tmp[pos_end - pos_equalto - 1] = '\0';
         second_cell = atoi(tmp);
+        free(tmp);
     }
     else
     {
@@ -108,8 +114,14 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
 
     if (isDigit(a[pos_equalto + 1]))
     {
-        char tmp[2] = {a[pos_equalto + 1], '\0'};
-        second_cell = atoi(tmp);
+        char *tmp2 = (char *)malloc(20 * sizeof(char));
+        for (int i = pos_equalto + 1; i < op; i++)
+        {
+            tmp2[i - pos_equalto - 1] = a[i];
+        }
+        tmp2[op - pos_equalto - 1] = '\0';
+        second_cell = atoi(tmp2);
+        free(tmp2);
     }
     else
     {
@@ -118,8 +130,15 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
     }
     if(isDigit(a[op + 1]))
     {
-        char tmp[2] = {a[op + 1], '\0'};
-        third_cell = atoi(tmp);
+        char *tmp3 = (char *)malloc(20 * sizeof(char));
+        for (int i = op + 1; i < pos_end; i++)
+        {
+            tmp3[i - op - 1] = a[i];
+        }
+        tmp3[pos_end - op - 1] = '\0';\
+
+        third_cell = atoi(tmp3);
+        free(tmp3);
     }
     else
     {
@@ -156,16 +175,31 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr)
 void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
     int first_cell;
+    first_cell = cell_parser(a,C,R,0,pos_equalto -1);
 
-    if ((first_cell = cell_parser(a, C, R, 0, pos_equalto - 1)) == -1)
+
+    if (first_cell  == -1)
     {
         printf("Invalid cell");
         return;
     }
 
-    if (pos_end - pos_equalto >= 3)
+    char *open_paren1 = strchr(a + pos_equalto, '(');
+    char *close_paren1 = strchr(a + pos_equalto, ')');
+
+    if (!open_paren1 || !close_paren1 || close_paren1 <= open_paren1 + 1)
     {
-        if (pos_end - pos_equalto >= 5)
+        printf("Invalid range: Missing or misplaced parentheses\n");
+        return;
+    }
+
+    int idx_open = open_paren1 - a;
+    int idx_close = close_paren1 - a;
+
+
+    if (idx_open - pos_equalto >= 3)
+    {
+        if (idx_open - pos_equalto-1 == 5)
         {
             if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'T' && a[pos_equalto + 3] == 'D' && a[pos_equalto + 4] == 'E' && a[pos_equalto + 5] == 'V')
             {
@@ -174,21 +208,33 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
             {
             }
         }
-        else
+        else if (idx_open - pos_equalto-1 == 3)
         {
             if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'I' && a[pos_equalto + 3] == 'N')
             {
+                min_func(a, C, R, pos_equalto, pos_end, arr); 
             }
             else if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'A' && a[pos_equalto + 3] == 'X')
             {
+                maxfunc(a, C, R, pos_equalto, pos_end,arr);
             }
             else if (a[pos_equalto + 1] == 'A' && a[pos_equalto + 2] == 'V' && a[pos_equalto + 3] == 'G')
             {
+                avg_func(a, C, R, pos_equalto, pos_end,arr);
             }
             else if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'U' && a[pos_equalto + 3] == 'M')
             {
+                sum_func(a, C, R, pos_equalto, pos_end,arr);
             }
         }
+        else
+        {
+            printf("Invalid function\n");
+        }
+    }
+    else
+    {
+        printf("Invalid function\n");
     }
 }
 
@@ -220,7 +266,7 @@ int parser(char *a, int C, int R,int *arr)
     int func = 0;
 
     for (int i = pos_equalto + 1; i < pos_end; i++) {
-        if (a[i] == ':') {
+        if (a[i] == '(') {
             func = 1;
             break;
         }
@@ -244,6 +290,7 @@ int parser(char *a, int C, int R,int *arr)
         arth_op(a, C, R, pos_equalto, pos_end,arr);
     }
     else if (func == 1) {
+        
         funct(a, C, R, pos_equalto, pos_end,arr);
     }
 

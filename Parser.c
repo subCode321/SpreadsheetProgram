@@ -82,20 +82,19 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gra
     }
     if (is_cell == 0)
     {
+        Recalc(first_cell, second_cell, graph, arr);
         arr[first_cell] = second_cell;
-        // Recalc(first_cell, second_cell, graph, arr);
-        
+        printf("%d_Hello1 \n", first_cell);
     }
     else
     {
         int tmp = arr[second_cell];
+        Recalc(first_cell, second_cell, graph, arr);
+
+        printf("%d_Hello2 \n", first_cell);
         arr[first_cell] = tmp;
-        // Recalc(first_cell, second_cell, graph, arr);
     }
     
-
-    
-
 }
 
 void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph *graph)
@@ -167,18 +166,18 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph
     else if (second_cell_check==1 && third_cell_check==0){
         res = arithmetic_eval(arr[second_cell], third_cell, a[op]); 
         arr[first_cell] = res;
-        // Addedge(second_cell, first_cell, 1, op, graph);
+        Addedge(first_cell, second_cell, 1, op, graph);
     }
     else if (second_cell_check==0 && third_cell_check==1){
         res = arithmetic_eval(second_cell, arr[third_cell], a[op]); 
         arr[first_cell] = res;
-        // Addedge(third_cell, first_cell, 1, op, graph);
+        Addedge(first_cell, third_cell, 1, op, graph);
     }
     else if (second_cell_check==1 && third_cell_check==1){
         res = arithmetic_eval(arr[second_cell], arr[third_cell], a[op]);
         arr[first_cell] = res;
-        // Addedge(second_cell, first_cell, 1, op, graph);
-        // Addedge(third_cell, first_cell, 1, op, graph);
+        Addedge(first_cell, second_cell, 1, op, graph);
+        Addedge(first_cell, third_cell, 1, op, graph);
     }
     
 }
@@ -249,7 +248,7 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *
     }
 }
 
-int parser(char *a, int C, int R,int *arr,Graph *graph)
+int parser(char *a, int C, int R,int *arr, Graph *graph)
 {
 
     if (a[0] == 'w' || a[0] == 'd' || a[0] == 'a' || a[0] == 's')
@@ -295,7 +294,8 @@ int parser(char *a, int C, int R,int *arr,Graph *graph)
     }
 
     if (value == 1) {
-        valuefunc(a, C, R, pos_equalto, pos_end,arr,graph);
+        valuefunc(a, C, R, pos_equalto, pos_end, arr, graph);
+        printf("Hello");
     }
     else if (arth_exp == 1) {
         arth_op(a, C, R, pos_equalto, pos_end,arr,graph);

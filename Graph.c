@@ -143,22 +143,29 @@ void Recalc(int cell, int new_value, Graph *graph, int cell_values[]) {
         }
         else if(x->op_type == 9)
         {
+            ;
 
         }
-        elif (x->op_type == 10)
+        else if (x->op_type == 10)
         {
+            ;
         }
-        elif (x->op_type == 11)
+        else if (x->op_type == 11)
         {
+            ;
         }
-        elif (x->op_type == 12)
+        else if (x->op_type == 12)
         {
+            ;
         }
-        elif (x->op_type == 13)
+        else if (x->op_type == 13)
         {
+            ;
         }
+
         else
         {
+            ;
         }
         Recalc(x->cell, dependent_new_value, graph);
         x = x->next;

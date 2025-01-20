@@ -1,6 +1,7 @@
 #include <stdio.h>
 #define NUM_CELLS 18259722
 
+
 typedef struct Cell
 {
     int cell;      
@@ -67,11 +68,11 @@ Graph *CreateGraph()
 Op                    op_type   op_info
 (+)                      1        NULL
 (-)                      2        NULL
-(* with Cell)            3        Other Cell
-(* with const)           4        const
-(/ denom with const)     5        const
-(/ num with const)       6        const
-(/ denom with cell)      7        Other Cell
+(* with Cell)            3        NULL
+(* with const)           4        NULL
+(/ denom with const)     5        NULL
+(/ num with const)       6        NULL
+(/ denom with cell)      7        NULL
 (/ num with cell)        8        Other Cell
 (MIN)                    9        NULL
 (MAX)                    10       NULL
@@ -96,36 +97,53 @@ void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph) {
     }
 }
 
-void Recalc(int cell, Graph *graph) {
+void Recalc(int cell, int new_value, Graph *graph, int cell_values[]) {
+    int old_value;
+
+    old_value=cell_values[cell];
+    cell_values[cell] = new_value;
+
     Cell* x = graph->adjLists_head[cell];
 
     while (x != NULL) {
+        int dependent_new_value=0;
+
         if (x->op_type == 1) 
         {
+            dependent_new_value = cell_values[x->cell] + new_value - old_value;
+
         }
-        elif (x->op_type == 2)
+        else if (x->op_type == 2)
         {
+            dependent_new_value = cell_values[x->cell] - new_value + old_value;
         }
-        elif (x->op_type == 3)
+        else if (x->op_type == 3)
         {
+            dependent_new_value = cell_values[x->cell] / old_value * new_value;
         }
-        elif (x->op_type == 4)
+        else if (x->op_type == 4)
         {
+            dependent_new_value = cell_values[x->cell] / old_value * new_value;
         }
-        elif (x->op_type == 5)
+        else if (x->op_type == 5)
         {
+            dependent_new_value = cell_values[x->cell] / old_value * new_value;
         }
-        elif (x->op_type == 6)
+        else if (x->op_type == 6)
         {
+            dependent_new_value = cell_values[x->cell] * old_value * new_value;
         }
-        elif (x->op_type == 7)
+        else if (x->op_type == 7)
         {
+            dependent_new_value = cell_values[x->cell] / old_value * new_value;
         }
-        elif (x->op_type == 8)
+        else if(x->op_type == 8)
         {
+            dependent_new_value = cell_values[x->cell] * old_value * new_value;
         }
-        elif (x->op_type == 9)
+        else if(x->op_type == 9)
         {
+
         }
         elif (x->op_type == 10)
         {
@@ -142,7 +160,7 @@ void Recalc(int cell, Graph *graph) {
         else
         {
         }
-        Recalc(x->cell, graph);
+        Recalc(x->cell, dependent_new_value, graph);
         x = x->next;
     }
 }

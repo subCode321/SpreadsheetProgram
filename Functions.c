@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "Parser.h"
 #include <math.h>
+#include <unistd.h> // For sleep function
 
 int validate_range(int range_start, int range_end, int C) {
     
@@ -387,6 +388,29 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gr
 
 void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
 {
-     
+    int target_cell = cell_parser(a, C, R, 0, pos_equalto - 1, NULL);
+    if (target_cell == -1) {
+        printf("Invalid destination cell\n");
+        return;
+    }
+
+    
+    char *open_paren = strchr(a + pos_equalto, '(');
+    char *close_paren = strchr(a + pos_equalto, ')');
+    if (!open_paren || !close_paren) {
+        printf("Invalid SLEEP syntax\n");
+        return;
+    }
+
+    
+    int sleep_value = atoi(open_paren + 1);
+    if (sleep_value <= 0) {
+        printf("SLEEP value must be a positive integer\n");
+        return;
+    }
+
+    
+    sleep(sleep_value);
+    arr[target_cell] = sleep_value;
 }
 

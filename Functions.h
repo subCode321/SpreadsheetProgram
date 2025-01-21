@@ -9,5 +9,6 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
 void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph);
 void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph);
 void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph);
+int return_optype(char op);
 
 #endif

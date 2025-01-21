@@ -37,6 +37,24 @@ int arithmetic_eval(int v1, int v2, char op){
     }
 }
 
+int return_optype(char op){
+    if (op == '+'){
+        return 1;
+    }
+    
+    else if (op == '-'){
+        return 2;
+    }
+    
+    else if (op == '*'){
+        return 3;
+    }
+    
+    else if (op == '/'){
+        return 4;
+    }
+}
+
 void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
     int first_cell;

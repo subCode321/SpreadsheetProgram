@@ -89,14 +89,15 @@ void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
 {
     int old_value = cell_values[cell];
     cell_values[cell] = new_value;
-    printf("No");
     Cell *x = graph->adjLists_head[cell];
     if (x == NULL) {
         printf("Returning");
         return;
     }
-    printf("%d", x->cell);
-    printf("%d", new_value);
+    printf("%d\n", x->cell);
+    printf("%d\n", new_value);
+    printf("%d\n", old_value);
+    printf("%d\n", cell_values[x->cell]);
     while (x != NULL)
     {
         int dependent_new_value = cell_values[x->cell]; // Default value
@@ -109,16 +110,17 @@ void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
         { // (-)
             dependent_new_value = cell_values[x->cell] - new_value + old_value;
         }
-        else if (x->op_type == 3 || x->op_type == 4 || x->op_type == 5 || x->op_type == 7)
-        { // (* or /)
+        else if (x->op_type == 3)
+        { // (*)
             if (old_value != 0)
             {
-                dependent_new_value = cell_values[x->cell] / old_value * new_value;
+                dependent_new_value = (cell_values[x->cell] / old_value) * new_value;
+                printf("%d\n", dependent_new_value);
             }
         }
-        else if (x->op_type == 6 || x->op_type == 8)
-        { // (other *)
-            dependent_new_value = cell_values[x->cell] * old_value * new_value;
+        else if (x->op_type == 4)
+        { // (/)
+            dependent_new_value = (cell_values[x->cell] * old_value) / new_value;
         }
 
         // Update dependent cell and recursively recalculate

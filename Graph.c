@@ -73,13 +73,13 @@ void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph)
 
     if (graph->adjLists_head[cell2] == NULL)
     {
-        printf("%d %d \n", cell1, cell2);
+        // printf("%d %d \n", cell1, cell2);
         graph->adjLists_head[cell2] = new_cell;
         graph->adjLists_tail[cell2] = new_cell;
     }
     else
     {
-        printf("%d %d", cell1, cell2);
+        // printf("%d %d", cell1, cell2);
         graph->adjLists_tail[cell2]->next = new_cell;
         graph->adjLists_tail[cell2] = new_cell;
     }
@@ -89,18 +89,24 @@ void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
 {
     int old_value = cell_values[cell];
     cell_values[cell] = new_value;
+
+   
     Cell *x = graph->adjLists_head[cell];
     if (x == NULL) {
-        printf("Returning");
+        // printf("Returning");
         return;
     }
-    printf("%d\n", x->cell);
-    printf("%d\n", new_value);
-    printf("%d\n", old_value);
-    printf("%d\n", cell_values[x->cell]);
+    // printf("%d\n", x->cell);
+    // printf("%d\n", new_value);
+    // printf("%d\n", old_value);
+    // printf("%d\n", cell_values[x->cell]);
     while (x != NULL)
     {
         int dependent_new_value = cell_values[x->cell]; // Default value
+
+        if (x->op_type ==0){
+            dependent_new_value = new_value;
+        }
 
         if (x->op_type == 1)
         { // (+)
@@ -124,8 +130,8 @@ void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
         }
 
         // Update dependent cell and recursively recalculate
-        cell_values[x->cell] = dependent_new_value;
         Recalc(x->cell, dependent_new_value, graph, cell_values);
+        cell_values[x->cell] = dependent_new_value;
 
         x = x->next;
     }

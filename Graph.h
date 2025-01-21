@@ -22,7 +22,7 @@ typedef struct Graph
 Cell *Addcell(int cell, int op_type, int op_info, Cell *prev);
 Graph *CreateGraph(void);
 void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph);
-void Recalc(int cell, int new_value, Graph *graph, int cell_values[]);
+void Recalc(int cell, int new_value, Graph *graph, int *cell_values);
 
 #define OP_ADD 1
 #define OP_SUBTRACT 2

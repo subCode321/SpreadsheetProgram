@@ -84,6 +84,23 @@ void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph)
         graph->adjLists_tail[cell2] = new_cell;
     }
 }
+/*
+Op                    op_type   op_info
+(+)                      1        NULL
+(-)                      2        NULL
+(* with Cell)            3        NULL
+(* with const)           4        NULL
+(/ denom with const)     5        NULL
+(/ num with const)       6        NULL
+(/ denom with cell)      7        NULL
+(/ num with cell)        8        NULL
+(MIN)                    9        NULL
+(MAX)                    10       NULL
+(AVG)                    11      |Range|
+(SUM)                    12       NULL
+(STDEV)                  13      |Range|
+(SLEEP)                  14       NULL
+*/
 
 void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
 {
@@ -128,6 +145,42 @@ void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
         { // (/)
             dependent_new_value = (cell_values[x->cell] * old_value) / new_value;
         }
+        else if (x->op_type == 5)
+        {
+            dependent_new_value = cell_values[x->cell] / old_value * new_value;
+        }
+        else if (x->op_type == 6)
+        {
+            dependent_new_value = cell_values[x->cell] * old_value / new_value;
+        }
+        else if (x->op_type == 7)
+        {
+            dependent_new_value = cell_values[x->cell] / old_value * new_value;
+        }
+        else if(x->op_type == 8)
+        {
+            dependent_new_value = cell_values[x->cell] * old_value / new_value;
+        }
+        else if(x->op_type == 9)
+        {
+            dependent_new_value = min(new_value, cell_values[x->cell]);
+
+        }
+        else if (x->op_type == 10)
+        {
+            dependent_new_value = max(new_value, cell_values[x->cell]);
+        }
+        else if (x->op_type == 11)
+        {
+            dependent_new_value = (x->op_info * cell_values[x->cell] - old_value + new_value) / x->op_info;
+        }
+        else if (x->op_type == 12)
+        {
+            dependent_new_value = cell_values[x->cell] - old_value + new_value;
+        }
+    
+
+            
 
         // Update dependent cell and recursively recalculate
         Recalc(x->cell, dependent_new_value, graph, cell_values);

@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "Graph.h"
 #include "display.h"
+#include "Parser.h"
+#include <string.h>
 
 int min(int x, int y)
 {
@@ -20,7 +23,7 @@ int max(int x, int y)
 
 void printer(int currx, int curry, int *arr, int C, int R)
 {
-    printf("       ");
+    printf("   ");
 
     for (int i = 0; i < min(10, C - currx); i++)
     {
@@ -35,31 +38,32 @@ void printer(int currx, int curry, int *arr, int C, int R)
             val /= 26;
         }
         s[idx] = '\0';
+        char s2[5];
 
         for (int j = idx - 1; j >= 0; j--)
         {
-            printf("%c", s[j]);
+            s2[idx - 1 - j] = s[j];
         }
-        printf("      ");
+        printf("%-10s", s);
     }
     printf("\n");
 
     for (int j = 0; j < min(10, R - curry); j++)
     {   
-        printf("%d      ", curry + j + 1);
+        printf("%-3d", curry + j + 1);
         for (int i = 0; i < min(10, C - currx); i++)
         {
-            printf("%d      ", arr[(currx + i) + C * (curry + j)]);
+            printf("%-10d", arr[(currx + i) + C * (curry + j)]);
         }
         printf("\n");
     }
 }
 
-void scroller(char *a, int *arr, int *currx, int *curry, int C, int R)
+void scroller(char *a, int *arr, int *currx, int *curry, int C, int R,Graph *graph)
 {
     int flag = 0;
 
-    if (a[0] == 'w')
+    if (a[0] == 'w' && a[1]=='\0')
     {
         if (*curry < 10)
         {
@@ -71,7 +75,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R)
             printer(*currx, *curry, arr, C, R);
         }
     }
-    else if (a[0] == 'd')
+    else if (a[0] == 'd' && a[1] == '\0')
     {
         if (*currx >= C - 10)
         {
@@ -83,7 +87,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R)
             printer(*currx, *curry, arr, C, R);
         }
     }
-    else if (a[0] == 'a')
+    else if (a[0] == 'a' && a[1] == '\0')
     {
         if (*currx < 10)
         {
@@ -95,7 +99,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R)
             printer(*currx, *curry, arr, C, R);
         }
     }
-    else if (a[0] == 's')
+    else if (a[0] == 's' && a[1] == '\0')
     {
         if (*curry >= R - 10)
         {
@@ -105,6 +109,33 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R)
         {
             *curry += 10;
             printer(*currx, *curry, arr, C, R);
+        }
+    }
+
+    else if (strncmp(a, "scroll_to ", 10) == 0)
+    {
+        int cell = cell_parser(a, C, R, 10, strlen(a) - 1, graph);
+        if (cell == -1)
+        {
+            printf("Invalid cell input in scroll_to command\n");
+            flag = 1;
+        }
+        else
+        {
+            int start_row = cell / C;
+            int start_col = cell % C;
+            printf("Parsed row: %d, col: %d\n", start_row, start_col); // Debugging output
+            if (start_row >= R || start_col >= C)
+            {
+                printf("Scroll target out of bounds\n");
+                flag = 1;
+            }
+            else
+            {
+                *currx = start_col;
+                *curry = start_row;
+                printer(*currx, *curry, arr, C, R);
+            }
         }
     }
     else

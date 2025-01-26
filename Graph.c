@@ -3,9 +3,18 @@
 #include <string.h>
 #include "math.h"
 #define NUM_CELLS 18259722
-#include "display.h"
-
-
+int min2(int a, int b)
+{
+    if (a < b)
+        return a;
+    return b;
+}
+int max2(int a, int b)
+{
+    if (a > b)
+        return a;
+    return b;
+}
 typedef struct Cell
 {
     int cell;
@@ -164,12 +173,12 @@ void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
         }
         else if(x->op_type == 9)
         {
-            dependent_new_value = min(new_value, cell_values[x->cell]);
+            dependent_new_value = min2(new_value, cell_values[x->cell]);
 
         }
         else if (x->op_type == 10)
         {
-            dependent_new_value = max(new_value, cell_values[x->cell]);
+            dependent_new_value = max2(new_value, cell_values[x->cell]);
         }
         else if (x->op_type == 11)
         {

@@ -1,23 +1,22 @@
-#ifndef GRAPH_H 
+#ifndef GRAPH_H
 #define GRAPH_H
 
-
-#define NUM_CELLS 18259722
-
-typedef struct Cell 
+typedef struct Cell
 {
-    int cell;
-    struct Cell *next;
-    struct Cell *prev;
+    int cell_id;
     int op_type;
     int op_info;
+    struct Cell *prev;
 } Cell;
 
 typedef struct Graph
 {
-    struct Cell **adjLists_head;
-    struct Cell **adjLists_tail;
+    int num_cells;
+    int num_edges;
+    Cell **adjacency_list;
 } Graph;
+
+
 
 Cell *Addcell(int cell, int op_type, int op_info, Cell *prev);
 Graph *CreateGraph(void);

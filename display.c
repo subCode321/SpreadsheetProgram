@@ -10,6 +10,13 @@ int min(int x, int y)
         return x;
 }
 
+int max(int x, int y)
+{
+    if (x > y)
+        return x;
+    else
+        return y;
+}
 
 void printer(int currx, int curry, int *arr, int C, int R)
 {

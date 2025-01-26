@@ -3,6 +3,8 @@
 #include <string.h>
 #include "math.h"
 #define NUM_CELLS 18259722
+#include "display.h"
+
 
 typedef struct Cell
 {

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Parser.h"
-#include <math.h>
+#include<math.h>
 #include <unistd.h> // For sleep function
 
 int validate_range(int range_start, int range_end, int C) {

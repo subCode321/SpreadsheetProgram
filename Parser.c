@@ -4,8 +4,6 @@
 #include "Graph.h"
 #include "Functions.h"
 
-
-
 int isAlpha(char c)
 {
     if (c >= 'A' && c <= 'Z')
@@ -50,7 +48,6 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gra
 {
     int first_cell;
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
-
     if (first_cell == -1)
     {
         printf("Invalid cell");
@@ -82,7 +79,17 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gra
     }
     if (is_cell == 0)
     {
-        Recalc(first_cell, second_cell, graph, arr);
+        Stack *stack = NULL;
+        int visited[1000]={0};
+        for (int i = 0; i < 1000; i++)
+        {
+            if (!visited[i])
+            {
+                Toposort(graph, i, visited, &stack);
+            }
+        }
+
+        Recalc(stack, graph, arr, second_cell,first_cell);
         arr[first_cell] = second_cell;
         // printf("%d_Hello1 \n", first_cell);
     }
@@ -90,7 +97,17 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gra
     {
         int tmp = arr[second_cell];
         Addedge(first_cell, second_cell, 0, 0, graph);
-        Recalc(first_cell, tmp, graph, arr);
+        Stack *stack = NULL;
+        int visited[1000] = {0};
+        for (int i = 0; i < 1000; i++)
+        {
+            if (!visited[i])
+            {
+                Toposort(graph, i, visited, &stack);
+            }
+        }
+
+        Recalc(stack, graph, arr, tmp, first_cell);
 
         // printf("%d_Hello2 \n", first_cell);
         arr[first_cell] = tmp;
@@ -166,33 +183,58 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph
 
     else if (second_cell_check==1 && third_cell_check==0){
         res = arithmetic_eval(arr[second_cell], third_cell, a[op]);
-        arr[first_cell] = res;
 
         int optype= return_optype(a[op]);
         Addedge(first_cell, second_cell, optype, op, graph);
-        Recalc(first_cell, res, graph, arr);
+        int visited[1000] = {0};
+        Stack *stack = NULL;
+        for (int i = 0; i < 1000; i++)
+        {
+            if (!visited[i])
+            {
+                Toposort(graph, i, visited, &stack);
+            }
+        }
+        Recalc(stack, graph, arr, res, first_cell);
+        arr[first_cell] = res;
     }
     else if (second_cell_check==0 && third_cell_check==1){
         res = arithmetic_eval(second_cell, arr[third_cell], a[op]);
-        arr[first_cell] = res;
 
         int optype = return_optype(a[op]);
 
         Addedge(first_cell, third_cell, optype, op, graph);
+        int visited[1000] = {0};
+        Stack *stack = NULL;
+        for (int i = 0; i < 1000 ; i++)
+        {
+            if (!visited[i])
+            {
+                Toposort(graph, i, visited, &stack);
+            }
+        }
 
-        Recalc(first_cell, res, graph, arr);
+        Recalc(stack, graph, arr, res, first_cell);
+        arr[first_cell] = res;
     }
     else if (second_cell_check==1 && third_cell_check==1){
         res = arithmetic_eval(arr[second_cell], arr[third_cell], a[op]);
-        arr[first_cell] = res;
 
         int optype = return_optype(a[op]);
-
         Addedge(first_cell, second_cell, optype, op, graph);
         Addedge(first_cell, third_cell, optype, op, graph);
-        Recalc(first_cell, res, graph, arr);
+        int visited[1000] = {0};
+        Stack *stack = NULL;
+        for (int i = 0; i < 1000; i++)
+        {
+            if (!visited[i])
+            {
+                Toposort(graph, i, visited, &stack);
+            }
+        }
+        Recalc(stack, graph, arr, res, first_cell);
+        arr[first_cell] = res;
     }
-    
 }
 
 void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)

@@ -18,30 +18,50 @@ int max2(int a, int b)
 }
 
 /*
-Op                    op_type   op_info
-(+)                      1        NULL
-(-)                      2        NULL
-(* with Cell)            3        NULL
-(* with const)           4        NULL
-(/ denom with const)     5        NULL
-(/ num with const)       6        NULL
-(/ denom with cell)      7        NULL
-(/ num with cell)        8        NULL
-(MIN)                    9        NULL
-(MAX)                    10       NULL
-(AVG)                    11      |Range|
-(SUM)                    12       NULL
-(STDEV)                  13      |Range|
-(SLEEP)                  14       NULL
+Op                    op_type   op_info1    op_info2
+Assignment               1       Value         NULL
+(Const + Const)          2       Value1       Value2
+(Cell + Const)           3       Cell1        Value2
+(Const + Cell)           4       Value1       Cell2
+(Cell + Cell)            5       Cell1        Cell2
+
+(Const - Const)          6       Value1       Value2
+(Cell - Const)           7       Cell1        Value2
+(Const - Cell)           8       Value1       Cell2
+(Cell - Cell)            9       Cell1        Cell2
+
+(Const * Const)          10       Value1       Value2
+(Cell * Const)           11       Cell1        Value2
+(Const * Cell)           12       Value1       Cell2
+(Cell * Cell)            13       Cell1        Cell2
+
+(Const / Const)          14       Value1       Value2
+(Cell / Const)           15       Cell1        Value2
+(Const / Cell)           16       Value1       Cell2
+(Cell / Cell)            17       Cell1        Cell2
+
+(MIN)                    18      Starting Cell  Ending Cell
+(MAX)                    19      Starting Cell  Ending Cell
+(AVG)                    20      Starting Cell  Ending Cell
+(SUM)                    21      Starting Cell  Ending Cell
+(STDEV)                  22      Starting Cell  Ending Cell
+(SLEEP Const)            23       NULL            NULL
+(SLEEP Cell)             24       Cell1            NULL
+
 */
+typedef struct Formula
+{
+    int op_type;
+    int op_info1;
+    int op_info2;
+
+} Formula;
 
 typedef struct Cell
 {
     int cell;
     struct Cell *left;
     struct Cell *right;
-    int op_type;
-    int op_info;
     int height;
 } Cell;
 
@@ -104,8 +124,6 @@ Cell *Addcell(int cell, int op_type, int op_info)
     new_cell->cell = cell;
     new_cell->left = NULL;
     new_cell->right = NULL;
-    new_cell->op_type = op_type;
-    new_cell->op_info = op_info;
     new_cell->height = 1; 
     return new_cell;
 }
@@ -283,95 +301,7 @@ int *topoSort(Graph *graph, int *size, int *hasCycle)
     return result;
 }
 
-// void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
-// {
-//     int old_value = cell_values[cell];
-//     cell_values[cell] = new_value;
-
-   
-//     Cell *x = graph->adjLists_head[cell];
-//     if (x == NULL) {
-//         // printf("Returning");
-//         return;
-//     }
-//     // printf("%d\n", x->cell);
-//     // printf("%d\n", new_value);
-//     // printf("%d\n", old_value);
-//     // printf("%d\n", cell_values[x->cell]);
-//     while (x != NULL)
-//     {
-//         int dependent_new_value = cell_values[x->cell]; // Default value
-
-//         if (x->op_type ==0){
-//             dependent_new_value = new_value;
-//         }
-
-//         if (x->op_type == 1)
-//         { // (+)
-//             dependent_new_value = cell_values[x->cell] + new_value - old_value;
-//         }
-//         else if (x->op_type == 2)
-//         { // (-)
-//             dependent_new_value = cell_values[x->cell] - new_value + old_value;
-//         }
-//         else if (x->op_type == 3)
-//         { // (*)
-//             if (old_value != 0)
-//             {
-//                 dependent_new_value = (cell_values[x->cell] / old_value) * new_value;
-//                 printf("%d\n", dependent_new_value);
-//             }
-//         }
-//         else if (x->op_type == 4)
-//         { // (/)
-//             dependent_new_value = (cell_values[x->cell] * old_value) / new_value;
-//         }
-//         else if (x->op_type == 5)
-//         {
-//             dependent_new_value = cell_values[x->cell] / old_value * new_value;
-//         }
-//         else if (x->op_type == 6)
-//         {
-//             dependent_new_value = cell_values[x->cell] * old_value / new_value;
-//         }
-//         else if (x->op_type == 7)
-//         {
-//             dependent_new_value = cell_values[x->cell] / old_value * new_value;
-//         }
-//         else if(x->op_type == 8)
-//         {
-//             dependent_new_value = cell_values[x->cell] * old_value / new_value;
-//         }
-//         else if(x->op_type == 9)
-//         {
-//             dependent_new_value = min2(new_value, cell_values[x->cell]);
-
-//         }
-//         else if (x->op_type == 10)
-//         {
-//             dependent_new_value = max2(new_value, cell_values[x->cell]);
-//         }
-//         else if (x->op_type == 11)
-//         {
-//             dependent_new_value = (x->op_info * cell_values[x->cell] - old_value + new_value) / x->op_info;
-//         }
-//         else if (x->op_type == 12)
-//         {
-//             dependent_new_value = cell_values[x->cell] - old_value + new_value;
-//         }
-    
-
-            
-
-//         // Update dependent cell and recursively recalculate
-//         Recalc(x->cell, dependent_new_value, graph, cell_values);
-//         cell_values[x->cell] = dependent_new_value;
-
-//         x = x->next;
-//     }
-// }
-
-void Recalc()
+void Recalc(Graph *graph, int cell)
 {
-    ;
+
 }

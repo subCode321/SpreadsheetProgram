@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #define NUM_CELLS 18259722
+
 int min2(int a, int b)
 {
     if (a < b)
         return a;
     return b;
 }
+
 int max2(int a, int b)
 {
     if (a > b)
@@ -33,12 +35,6 @@ Op                    op_type   op_info
 (SLEEP)                  14       NULL
 */
 
-typedef struct Stack
-{
-    int data;
-    struct Stack *next_in_stack; //I'm doing so to avoid confusions b/w the two nexts
-}Stack;
-
 typedef struct Cell
 {
     int cell;
@@ -47,7 +43,6 @@ typedef struct Cell
     int op_type;
     int op_info;
     int height;
-
 } Cell;
 
 typedef struct Graph
@@ -55,51 +50,47 @@ typedef struct Graph
     struct Cell **adjLists_head;
 } Graph;
 
-
-int height(Cell *c) {
-    if (c == NULL) return -1;
-
+int height(Cell *c)
+{
+    if (c == NULL)
+        return 0;
     return c->height;
 }
 
-int balance(Cell *c) {
-    if (c == NULL) return 0;
-
+int balance(Cell *c)
+{
+    if (c == NULL)
+        return 0;
     return height(c->left) - height(c->right);
 }
 
-Cell* RR(Cell *c) {
-    Cell *x = c->left;
+Cell *LL(Cell *y)
+{ 
+    Cell *x = y->left;
     Cell *T2 = x->right;
 
-    x->right = c;
-    c->left = T2;
+    x->right = y;
+    y->left = T2;
 
-    c->height = max(height(c->left), height(c->right)) + 1;
-    x->height = max(height(x->left), height(x->right)) + 1;
-
-    return x;
-}
-
-Cell *LL(Cell *c){
-    Cell *x = c->right;
-    Cell *T2 = x->left;
-
-    x->left = c;
-    c->right = T2;
-
-    c->height = max(height(c->left), height(c->right)) + 1;
-    x->height = max(height(x->left), height(x->right)) + 1;
+    y->height = max2(height(y->left), height(y->right)) + 1;
+    x->height = max2(height(x->left), height(x->right)) + 1;
 
     return x;
 }
-Stack *createStackNode(int data)
-{
-    struct Stack *newNode = (struct Stack *)malloc(sizeof(struct Stack));
-    newNode->data = data;
-    newNode->next_in_stack = NULL;
-    return newNode;
+
+Cell *RR(Cell *x){
+    Cell *y = x->right;
+    Cell *T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    x->height = max2(height(x->left), height(x->right)) + 1;
+    y->height = max2(height(y->left), height(y->right)) + 1;
+
+    return y;
 }
+
 
 Cell *Addcell(int cell, int op_type, int op_info)
 {
@@ -115,7 +106,7 @@ Cell *Addcell(int cell, int op_type, int op_info)
     new_cell->right = NULL;
     new_cell->op_type = op_type;
     new_cell->op_info = op_info;
-    new_cell->height = 0;
+    new_cell->height = 1; 
     return new_cell;
 }
 
@@ -129,67 +120,167 @@ Graph *CreateGraph()
     }
 
     graph->adjLists_head = (Cell **)malloc(NUM_CELLS * sizeof(Cell *));
-
     if (!graph->adjLists_head)
     {
         printf("Cannot allocate memory for adjacency lists\n");
-        free(graph->adjLists_head);
         free(graph);
         return NULL;
     }
 
+    memset(graph->adjLists_head, 0, NUM_CELLS * sizeof(Cell *));
     return graph;
 }
 
-Cell* Addedge(int cell1, Cell *x, int op_type, int op_info)
+Cell *Addedge(int cell1, Cell *x, int op_type, int op_info)
 {
-    if (x == NULL) {
-        Cell *c = Addcell(cell1, op_type, op_info);
-        x = c;
-        return c;
+    if (x == NULL)
+    {
+        return Addcell(cell1, op_type, op_info);
     }
 
-    if (cell1 < x->cell) {
+    if (cell1 < x->cell)
+    {
         x->left = Addedge(cell1, x->left, op_type, op_info);
     }
-    else {
+    else if (cell1 > x->cell)
+    {
         x->right = Addedge(cell1, x->right, op_type, op_info);
     }
+    else
+    {
+        return x;
+    }
 
+    x->height = 1 + max2(height(x->left), height(x->right));
     int bal = balance(x);
 
-    if (bal > 1 && cell1 < x->left->cell) return RR(x);
-
-    if (bal < -1 && cell1 > x->right->cell) return LL(x);
-
-    if (bal > 1 && cell1 > x->left->cell) {
-        x->left = LL(x->left);
-        return RR(x);
-    }
-    if (bal < -1 && cell1 < x->right->cell) {
-        x->right = RR(x->right);
+    if (bal > 1 && cell1 < x->left->cell)
         return LL(x);
+
+    if (bal < -1 && cell1 > x->right->cell)
+        return RR(x);
+
+    if (bal > 1 && cell1 > x->left->cell)
+    {
+        x->left = RR(x->left);
+        return LL(x);
+    }
+
+    if (bal < -1 && cell1 < x->right->cell)
+    {
+        x->right = LL(x->right);
+        return RR(x);
     }
 
     return x;
 }
 
+void countInDegrees(Cell *root, int *inDegree)
+{
+    if (!root)
+        return;
+    countInDegrees(root->left, inDegree);
+    inDegree[root->cell]++;
+    countInDegrees(root->right, inDegree);
+}
 
-void Toposort(Graph *graph, int v, int visited[], Stack** stack){
-    visited[v]=1;
-    Cell *headcell = graph->adjLists_head[v]; //what I want to do here is to get the current head cell of the adj list associated with v
-    while(headcell!=NULL){
-        int child = headcell->cell;
-        if(visited[child]!=1){
-            Toposort(graph,child,visited,stack);
-        }
-        headcell = headcell->next;
+void processAdjacent(Cell *root, int *inDegree, int *queue, int *rear)
+{
+    if (!root)
+        return;
+    processAdjacent(root->left, inDegree, queue, rear);
+
+    inDegree[root->cell]--;
+    if (inDegree[root->cell] == 0)
+    {
+        queue[(*rear)++] = root->cell;
     }
-    Stack *newChild = (Stack *)malloc(sizeof(Stack));
-    newChild->data = v;
-    newChild->next_in_stack = *stack; // the prev top of the stack is now the next node of this newChild
-    *stack = newChild; // newChild is the New top
 
+    processAdjacent(root->right, inDegree, queue, rear);
+}
+
+int *topoSort(Graph *graph, int *size, int *hasCycle)
+{
+    *hasCycle = 0; // Initialize to no cycle
+    *size = 0;     // Initialize size to 0
+
+    int *inDegree = (int *)calloc(NUM_CELLS, sizeof(int));
+    if (!inDegree)
+        return NULL;
+
+    // Count in-degrees
+    int totalVertices = 0;
+    for (int i = 0; i < NUM_CELLS; i++)
+    {
+        if (graph->adjLists_head[i] != NULL)
+        {
+            countInDegrees(graph->adjLists_head[i], inDegree);
+        }
+    }
+
+    // Count all non-null nodes as vertices
+    for (int i = 0; i < NUM_CELLS; i++)
+    {
+        if (graph->adjLists_head[i] != NULL || inDegree[i] > 0)
+        {
+            totalVertices++;
+        }
+    }
+
+    // Create queue
+    int *queue = (int *)malloc(NUM_CELLS * sizeof(int));
+    if (!queue)
+    {
+        free(inDegree);
+        return NULL;
+    }
+    int front = 0, rear = 0;
+
+    // Add vertices with 0 in-degree
+    for (int i = 0; i < NUM_CELLS; i++)
+    {
+        if (inDegree[i] == 0 && (graph->adjLists_head[i] != NULL))
+        {
+            queue[rear++] = i;
+        }
+    }
+
+    // Create result array
+    int *result = (int *)malloc(NUM_CELLS * sizeof(int));
+    if (!result)
+    {
+        free(inDegree);
+        free(queue);
+        return NULL;
+    }
+    int resultIndex = 0;
+
+    // Process vertices
+    while (front < rear)
+    {
+        int v = queue[front++];
+        result[resultIndex++] = v;
+
+        // Process adjacent vertices
+        processAdjacent(graph->adjLists_head[v], inDegree, queue, &rear);
+    }
+
+    // Check for cycle
+    if (resultIndex < totalVertices)
+    {
+        *hasCycle = 1;
+        free(result);
+        free(inDegree);
+        free(queue);
+        return NULL;
+    }
+
+    // Cleanup
+    free(inDegree);
+    free(queue);
+
+    *size = resultIndex;
+    return result;
 }
 
 // void Recalc(int cell, int new_value, Graph *graph, int *cell_values)
@@ -280,75 +371,7 @@ void Toposort(Graph *graph, int v, int visited[], Stack** stack){
 //     }
 // }
 
-void Recalc(Stack *stack, Graph *graph, int *cell_values, int new_value, int givencell)
+void Recalc()
 {
-    int cells_which_have_changed[1000] = {0}; // Stores updated cells
-    int idx = 0;
-    cells_which_have_changed[idx] = givencell;
-
-    int ogvalue = cell_values[givencell];
-    cell_values[givencell] = new_value;
-
-    while (stack != NULL)
-    {
-        int curr_cell = stack->data;
-        stack = stack->next_in_stack; // Move to the next node
-
-        for (int j = 0; j <= idx; j++)
-        {
-            int dpcell = cells_which_have_changed[j];
-            Cell *check_cell = graph->adjLists_head[dpcell];
-
-            int check = 0, op = -1;
-            while (check_cell != NULL)
-            {
-                if (check_cell->cell == curr_cell)
-                {
-                    check = 1;
-                    op = check_cell->op_type;
-                    break;
-                }
-                check_cell = check_cell->next; // Move to next node in adjacency list
-            }
-
-            if (check == 1)
-            {
-                int tmp = cell_values[curr_cell];
-
-                switch (op)
-                {
-                case 0: // Addition
-                case 1: // Same as Addition
-                    cell_values[curr_cell] -= ogvalue;
-                    cell_values[curr_cell] += new_value;
-                    break;
-
-                case 2: // Subtraction
-                    cell_values[curr_cell] += ogvalue;
-                    cell_values[curr_cell] -= new_value;
-                    break;
-
-                case 3: // Division (Avoid Zero Division)
-                    if (ogvalue != 0)
-                    {
-                        cell_values[curr_cell] /= ogvalue;
-                    }
-                    cell_values[curr_cell] *= new_value;
-                    break;
-
-                case 4: // Multiplication
-                    if (new_value != 0)
-                    {
-                        cell_values[curr_cell] *= ogvalue;
-                        cell_values[curr_cell] /= new_value;
-                    }
-                    break;
-                }
-
-                ogvalue = tmp;
-                new_value = cell_values[curr_cell];
-                cells_which_have_changed[++idx] = curr_cell;
-            }
-        }
-    }
+    ;
 }

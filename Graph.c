@@ -15,99 +15,6 @@ int max2(int a, int b)
     return b;
 }
 
-typedef struct Stack
-{
-    int data;
-    struct Stack *next_in_stack; //I'm doing so to avoid confusions b/w the two nexts
-}Stack;
-
-typedef struct Cell
-{
-    int cell;
-    struct Cell *next;
-    struct Cell *prev;
-    int op_type;
-    int op_info;
-} Cell;
-
-typedef struct Graph
-{
-    struct Cell **adjLists_head;
-    struct Cell **adjLists_tail;
-} Graph;
-
-Stack *createStackNode(int data)
-{
-    struct Stack *newNode = (struct Stack *)malloc(sizeof(struct Stack));
-    newNode->data = data;
-    newNode->next_in_stack = NULL;
-    return newNode;
-}
-
-Cell *Addcell(int cell, int op_type, int op_info, Cell *prev)
-{
-    Cell *new_cell = (Cell *)malloc(sizeof(Cell));
-    if (!new_cell)
-    {
-        printf("Cannot allocate memory for %d\n", cell);
-        return NULL;
-    }
-
-    new_cell->cell = cell;
-    new_cell->next = NULL;
-    new_cell->prev = prev;
-    new_cell->op_type = op_type;
-    new_cell->op_info = op_info;  
-    return new_cell;
-}
-
-Graph *CreateGraph()
-{
-    Graph *graph = (Graph *)malloc(sizeof(Graph));
-    if (!graph)
-    {
-        printf("Cannot allocate memory for graph\n");
-        return NULL;
-    }
-
-    graph->adjLists_head = (Cell **)malloc(NUM_CELLS * sizeof(Cell *));
-    graph->adjLists_tail = (Cell **)malloc(NUM_CELLS * sizeof(Cell *));
-    if (!graph->adjLists_head || !graph->adjLists_tail)
-    {
-        printf("Cannot allocate memory for adjacency lists\n");
-        free(graph->adjLists_head);
-        free(graph->adjLists_tail);
-        free(graph);
-        return NULL;
-    }
-
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        graph->adjLists_head[i] = NULL;
-        graph->adjLists_tail[i] = NULL;
-    }
-    return graph;
-}
-
-void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph)
-{
-    Cell *new_cell = Addcell(cell1, op_type, op_info, graph->adjLists_tail[cell2]);
-    if (!new_cell)
-        return;
-
-    if (graph->adjLists_head[cell2] == NULL)
-    {
-        // printf("%d %d \n", cell1, cell2);
-        graph->adjLists_head[cell2] = new_cell;
-        graph->adjLists_tail[cell2] = new_cell;
-    }
-    else
-    {
-        // printf("%d %d", cell1, cell2);
-        graph->adjLists_tail[cell2]->next = new_cell;
-        graph->adjLists_tail[cell2] = new_cell;
-    }
-}
 /*
 Op                    op_type   op_info
 (+)                      1        NULL
@@ -126,6 +33,148 @@ Op                    op_type   op_info
 (SLEEP)                  14       NULL
 */
 
+typedef struct Stack
+{
+    int data;
+    struct Stack *next_in_stack; //I'm doing so to avoid confusions b/w the two nexts
+}Stack;
+
+typedef struct Cell
+{
+    int cell;
+    struct Cell *left;
+    struct Cell *right;
+    int op_type;
+    int op_info;
+    int height;
+
+} Cell;
+
+typedef struct Graph
+{
+    struct Cell **adjLists_head;
+} Graph;
+
+
+int height(Cell *c) {
+    if (c == NULL) return -1;
+
+    return c->height;
+}
+
+int balance(Cell *c) {
+    if (c == NULL) return 0;
+
+    return height(c->left) - height(c->right);
+}
+
+Cell* RR(Cell *c) {
+    Cell *x = c->left;
+    Cell *T2 = x->right;
+
+    x->right = c;
+    c->left = T2;
+
+    c->height = max(height(c->left), height(c->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    return x;
+}
+
+Cell *LL(Cell *c){
+    Cell *x = c->right;
+    Cell *T2 = x->left;
+
+    x->left = c;
+    c->right = T2;
+
+    c->height = max(height(c->left), height(c->right)) + 1;
+    x->height = max(height(x->left), height(x->right)) + 1;
+
+    return x;
+}
+Stack *createStackNode(int data)
+{
+    struct Stack *newNode = (struct Stack *)malloc(sizeof(struct Stack));
+    newNode->data = data;
+    newNode->next_in_stack = NULL;
+    return newNode;
+}
+
+Cell *Addcell(int cell, int op_type, int op_info)
+{
+    Cell *new_cell = (Cell *)malloc(sizeof(Cell));
+    if (!new_cell)
+    {
+        printf("Cannot allocate memory for %d\n", cell);
+        return NULL;
+    }
+
+    new_cell->cell = cell;
+    new_cell->left = NULL;
+    new_cell->right = NULL;
+    new_cell->op_type = op_type;
+    new_cell->op_info = op_info;
+    new_cell->height = 0;
+    return new_cell;
+}
+
+Graph *CreateGraph()
+{
+    Graph *graph = (Graph *)malloc(sizeof(Graph));
+    if (!graph)
+    {
+        printf("Cannot allocate memory for graph\n");
+        return NULL;
+    }
+
+    graph->adjLists_head = (Cell **)malloc(NUM_CELLS * sizeof(Cell *));
+
+    if (!graph->adjLists_head)
+    {
+        printf("Cannot allocate memory for adjacency lists\n");
+        free(graph->adjLists_head);
+        free(graph);
+        return NULL;
+    }
+
+    return graph;
+}
+
+Cell* Addedge(int cell1, Cell *x, int op_type, int op_info)
+{
+    if (x == NULL) {
+        Cell *c = Addcell(cell1, op_type, op_info);
+        x = c;
+        return c;
+    }
+
+    if (cell1 < x->cell) {
+        x->left = Addedge(cell1, x->left, op_type, op_info);
+    }
+    else {
+        x->right = Addedge(cell1, x->right, op_type, op_info);
+    }
+
+    int bal = balance(x);
+
+    if (bal > 1 && cell1 < x->left->cell) return RR(x);
+
+    if (bal < -1 && cell1 > x->right->cell) return LL(x);
+
+    if (bal > 1 && cell1 > x->left->cell) {
+        x->left = LL(x->left);
+        return RR(x);
+    }
+    if (bal < -1 && cell1 < x->right->cell) {
+        x->right = RR(x->right);
+        return LL(x);
+    }
+
+    return x;
+}
+
+
 void Toposort(Graph *graph, int v, int visited[], Stack** stack){
     visited[v]=1;
     Cell *headcell = graph->adjLists_head[v]; //what I want to do here is to get the current head cell of the adj list associated with v
@@ -140,8 +189,6 @@ void Toposort(Graph *graph, int v, int visited[], Stack** stack){
     newChild->data = v;
     newChild->next_in_stack = *stack; // the prev top of the stack is now the next node of this newChild
     *stack = newChild; // newChild is the New top
-    
-
 
 }
 

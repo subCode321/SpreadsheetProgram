@@ -26,9 +26,6 @@ typedef struct Formula
 
 } Formula;
 
-
-
-
 typedef struct Cell
 {
     int cell;

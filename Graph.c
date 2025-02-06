@@ -225,7 +225,7 @@ Assignment               1       Value         NULL
 
 */
 
-Cell *Deleteedge(Graph *graph, int cell)
+Cell *Deleteedge(Graph *graph, int cell, int COLS)
 {
     Formula x = formulaArray[cell];
 
@@ -238,15 +238,38 @@ Cell *Deleteedge(Graph *graph, int cell)
         Cell *y = graph->adjLists_head[x.op_info2];
         Deletecell(cell, y);
     }
-    else if(x.op_type==5 || x.op_type == 9 || x.op_type == 13 || x.op_type == 17 || (x.op_type<=22 && x.op_type>=18)){
+    else if(x.op_type==5 || x.op_type == 9 || x.op_type == 13 || x.op_type == 17){
         Cell *y = graph->adjLists_head[x.op_info1];
         Deletecell(cell, y);
         Cell *z = graph->adjLists_head[x.op_info2];
         Deletecell(cell, z);
     }
-    
+    else if (x.op_type >= 18 && x.op_type <= 22) 
+    {
+        int startCell = x.op_info1;
+        int endCell = x.op_info2;
+
+        int startRow = startCell / COLS; 
+        int startCol = startCell % COLS;
+        int endRow = endCell / COLS;
+        int endCol = endCell % COLS;
+
+        
+        for (int row = startRow; row <= endRow; ++row)
+        {
+            for (int col = startCol; col <= endCol; ++col)
+            {
+                int targetCell = row * COLS + col; 
+                if (graph->adjLists_head[targetCell])
+                {
+                    Deletecell(cell, graph->adjLists_head[targetCell]);
+                }
+            }
+        }
+    }
     return NULL;
 }
+
 
 
 Cell *Deletecell(int cell1, Cell *x)

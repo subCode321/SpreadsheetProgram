@@ -26,38 +26,7 @@ typedef struct Formula
 
 } Formula;
 
-/*
-Op                    op_type   op_info1    op_info2
-Assignment               1       Value         NULL
-(Const + Const)          2       Value1       Value2
-(Cell + Const)           3       Cell1        Value2
-(Const + Cell)           4       Value1       Cell2
-(Cell + Cell)            5       Cell1        Cell2
 
-(Const - Const)          6       Value1       Value2
-(Cell - Const)           7       Cell1        Value2
-(Const - Cell)           8       Value1       Cell2
-(Cell - Cell)            9       Cell1        Cell2
-
-(Const * Const)          10       Value1       Value2
-(Cell * Const)           11       Cell1        Value2
-(Const * Cell)           12       Value1       Cell2
-(Cell * Cell)            13       Cell1        Cell2
-
-(Const / Const)          14       Value1       Value2
-(Cell / Const)           15       Cell1        Value2
-(Const / Cell)           16       Value1       Cell2
-(Cell / Cell)            17       Cell1        Cell2
-
-(MIN)                    18      Starting Cell  Ending Cell
-(MAX)                    19      Starting Cell  Ending Cell
-(AVG)                    20      Starting Cell  Ending Cell
-(SUM)                    21      Starting Cell  Ending Cell
-(STDEV)                  22      Starting Cell  Ending Cell
-(SLEEP Const)            23       NULL            `NULL
-(SLEEP Cell)             24       Cell1            NULL
-
-*/
 
 
 typedef struct Cell
@@ -223,15 +192,59 @@ Cell *Addedge(int cell1, Cell *x)
     return x;
 }
 
-Cell *Deleteedge(int cell)
+/*
+Op                    op_type   op_info1    op_info2
+Assignment               1       Value         NULL
+(Const + Const)          2       Value1       Value2
+(Cell + Const)           3       Cell1        Value2
+(Const + Cell)           4       Value1       Cell2
+(Cell + Cell)            5       Cell1        Cell2
+
+(Const - Const)          6       Value1       Value2
+(Cell - Const)           7       Cell1        Value2
+(Const - Cell)           8       Value1       Cell2
+(Cell - Cell)            9       Cell1        Cell2
+
+(Const * Const)          10       Value1       Value2
+(Cell * Const)           11       Cell1        Value2
+(Const * Cell)           12       Value1       Cell2
+(Cell * Cell)            13       Cell1        Cell2
+
+(Const / Const)          14       Value1       Value2
+(Cell / Const)           15       Cell1        Value2
+(Const / Cell)           16       Value1       Cell2
+(Cell / Cell)            17       Cell1        Cell2
+
+(MIN)                    18      Starting Cell  Ending Cell
+(MAX)                    19      Starting Cell  Ending Cell
+(AVG)                    20      Starting Cell  Ending Cell
+(SUM)                    21      Starting Cell  Ending Cell
+(STDEV)                  22      Starting Cell  Ending Cell
+(SLEEP Const)            23       NULL            `NULL
+(SLEEP Cell)             24       Cell1            NULL
+
+*/
+
+Cell *Deleteedge(Graph *graph, int cell)
 {
     Formula x = formulaArray[cell];
 
-    if (x.op_type == 3)
+    if (x.op_type == 3 || x.op_type == 7 || x.op_type == 11 || x.op_type == 15 || x.op_type == 24)
     {
         Cell *y = graph->adjLists_head[x.op_info1];
         Deletecell(cell, y);
     }
+    else if(x.op_type == 4 || x.op_type == 8 || x.op_type == 12 || x.op_type == 16){
+        Cell *y = graph->adjLists_head[x.op_info2];
+        Deletecell(cell, y);
+    }
+    else if(x.op_type==5 || x.op_type == 9 || x.op_type == 13 || x.op_type == 17 || (x.op_type<=22 && x.op_type>=18)){
+        Cell *y = graph->adjLists_head[x.op_info1];
+        Deletecell(cell, y);
+        Cell *z = graph->adjLists_head[x.op_info2];
+        Deletecell(cell, z);
+    }
+    
     return NULL;
 }
 

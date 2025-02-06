@@ -70,6 +70,8 @@ typedef struct Graph
     struct Cell **adjLists_head;
 } Graph;
 
+Formula formulaArray[NUM_CELLS];
+
 int height(Cell *c)
 {
     if (c == NULL)
@@ -112,7 +114,7 @@ Cell *RR(Cell *x){
 }
 
 
-Cell *Addcell(int cell, int op_type, int op_info)
+Cell *Addcell(int cell)
 {
     Cell *new_cell = (Cell *)malloc(sizeof(Cell));
     if (!new_cell)
@@ -149,20 +151,20 @@ Graph *CreateGraph()
     return graph;
 }
 
-Cell *Addedge(int cell1, Cell *x, int op_type, int op_info)
+Cell *Addedge(int cell1, Cell *x)
 {
     if (x == NULL)
     {
-        return Addcell(cell1, op_type, op_info);
+        return Addcell(cell1);
     }
 
     if (cell1 < x->cell)
     {
-        x->left = Addedge(cell1, x->left, op_type, op_info);
+        x->left = Addedge(cell1, x->left);
     }
     else if (cell1 > x->cell)
     {
-        x->right = Addedge(cell1, x->right, op_type, op_info);
+        x->right = Addedge(cell1, x->right);
     }
     else
     {
@@ -191,6 +193,12 @@ Cell *Addedge(int cell1, Cell *x, int op_type, int op_info)
     }
 
     return x;
+}
+
+Cell *Deleteedge(int cell) {
+    Formula x = formulaArray[cell];
+
+    
 }
 
 void countInDegrees(Cell *root, int *inDegree)

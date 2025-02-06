@@ -17,6 +17,15 @@ int max2(int a, int b)
     return b;
 }
 
+
+typedef struct Formula
+{
+    int op_type;
+    int op_info1;
+    int op_info2;
+
+} Formula;
+
 /*
 Op                    op_type   op_info1    op_info2
 Assignment               1       Value         NULL
@@ -49,13 +58,7 @@ Assignment               1       Value         NULL
 (SLEEP Cell)             24       Cell1            NULL
 
 */
-typedef struct Formula
-{
-    int op_type;
-    int op_info1;
-    int op_info2;
 
-} Formula;
 
 typedef struct Cell
 {
@@ -71,6 +74,31 @@ typedef struct Graph
 } Graph;
 
 Formula formulaArray[NUM_CELLS];
+
+void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
+    Formula newFormula;
+    // Assignment               1       Value         NULL
+    // (Const + Const)          2       Value1       Value2
+    // (Cell + Const)           3       Cell1        Value2
+    // (Const + Cell)           4       Value1       Cell2
+    // (Cell + Cell)            5       Cell1        Cell2
+    newFormula.op_type = op_type;
+    newFormula.op_info1 = NULL;
+    newFormula.op_info2 = NULL;
+    if(op_type == 1 || op_type == 24){
+        newFormula.op_info1 = c1;
+    }
+    else if(op_type == 23){
+        ;
+    }
+    else{
+        newFormula.op_info1 = c1;
+        newFormula.op_info2 = c2;
+    }
+    formulaArray[cell->cell] = newFormula;
+    
+    
+}
 
 int height(Cell *c)
 {
@@ -195,6 +223,19 @@ Cell *Addedge(int cell1, Cell *x)
     return x;
 }
 
+Cell *Deleteedge(int cell)
+{
+    Formula x = formulaArray[cell];
+
+    if (x.op_type == 3)
+    {
+        Cell *y = graph->adjLists_head[x.op_info1];
+        Deletecell(cell, y);
+    }
+    return NULL;
+}
+
+
 Cell *Deletecell(int cell1, Cell *x)
 {
     if (x == NULL)
@@ -255,11 +296,7 @@ Cell *Deletecell(int cell1, Cell *x)
     return x;
 }
 
-Cell *Deleteedge(int cell)
-{
-    Formula x = formulaArray[cell];
-    
-}
+
 
 void countInDegrees(Cell *root, int *inDegree)
 {

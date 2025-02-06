@@ -45,7 +45,7 @@ Assignment               1       Value         NULL
 (AVG)                    20      Starting Cell  Ending Cell
 (SUM)                    21      Starting Cell  Ending Cell
 (STDEV)                  22      Starting Cell  Ending Cell
-(SLEEP Const)            23       NULL            NULL
+(SLEEP Const)            23       NULL            `NULL
 (SLEEP Cell)             24       Cell1            NULL
 
 */
@@ -195,9 +195,69 @@ Cell *Addedge(int cell1, Cell *x)
     return x;
 }
 
-Cell *Deleteedge(int cell) {
-    Formula x = formulaArray[cell];
+Cell *Deletecell(int cell1, Cell *x)
+{
+    if (x == NULL)
+        return x;
 
+    if (cell1 < x->cell)
+        x->left = Deletecell(cell1, x->left);
+    else if (cell1 > x->cell)
+        x->right = Deletecell(cell1, x->right);
+    else
+    {
+        if (x->left == NULL || x->right == NULL)
+        {
+            Cell *temp = x->left ? x->left : x->right;
+            if (temp == NULL)
+            {
+                temp = x;
+                x = NULL;
+            }
+            else
+                *x = *temp;
+            free(temp);
+        }
+        else
+        {
+            Cell *temp = x->right;
+            while (temp->left != NULL)
+                temp = temp->left;
+            x->cell = temp->cell;
+            x->right = Deletecell(temp->cell, x->right);
+        }
+    }
+
+    if (x == NULL)
+        return x;
+
+    x->height = 1 + max2(height(x->left), height(x->right));
+    int bal = balance(x);
+
+    if (bal > 1 && balance(x->left) >= 0)
+        return LL(x);
+
+    if (bal > 1 && balance(x->left) < 0)
+    {
+        x->left = RR(x->left);
+        return LL(x);
+    }
+
+    if (bal < -1 && balance(x->right) <= 0)
+        return RR(x);
+
+    if (bal < -1 && balance(x->right) > 0)
+    {
+        x->right = LL(x->right);
+        return RR(x);
+    }
+
+    return x;
+}
+
+Cell *Deleteedge(int cell)
+{
+    Formula x = formulaArray[cell];
     
 }
 

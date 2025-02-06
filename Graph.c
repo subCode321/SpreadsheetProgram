@@ -442,7 +442,84 @@ int *topoSort(Graph *graph, int *size, int *hasCycle)
     return result;
 }
 
-void Recalc(Graph *graph, int cell)
+void Recalc(Graph *graph, int C, int *arr)
 {
+    int size, hasCycle;
+    int *sortedCells = topoSort(graph, &size, &hasCycle);
 
+    if (hasCycle)
+    {
+        printf("cycle");
+        free(sortedCells);
+        return;
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        int cell = sortedCells[i];
+        Formula f = formulaArray[cell];
+
+        if (f.op_type == 1)
+        {
+            arr[cell] = f.op_info1;
+        }
+
+        else if (f.op_type >= 2 && f.op_type <= 17)
+        {
+            int v1 = f.op_info1;
+            int v2 = f.op_info2;
+
+            if (f.op_type >= 3 && f.op_type <= 17) 
+            {
+                v1 = arr[f.op_info1]; 
+                if (f.op_info2 != -1) v2 = arr[f.op_info2];
+            }
+
+            arr[cell] = arithmetic_eval(v1, v2, (f.op_type % 4 == 1) ? '+' :
+                                             (f.op_type % 4 == 2) ? '-' :
+                                             (f.op_type % 4 == 3) ? '*' :
+                                             '/');
+        }
+
+        else if (f.op_type >= 18 && f.op_type <= 22)
+        {
+            int startCell = f.op_info1;
+            int endCell = f.op_info2;
+
+            int startRow = startCell / C;
+            int startCol = startCell % C;
+            int endRow = endCell / C;
+            int endCol = endCell % C;
+
+            int sum = 0, count = 0, minVal = arr[startCell], maxVal = arr[startCell], stdevSquared = 0;
+
+            for (int row = startRow; row <= endRow; row++)
+            {
+                for (int col = startCol; col <= endCol; col++)
+                {
+                    int idx = row * C + col;
+                    int val = arr[idx];
+
+                    sum += val;
+                    count++;
+                    if (val < minVal) minVal = val;
+                    if (val > maxVal) maxVal = val;
+                    stdevSquared += (val - (sum / count)) * (val - (sum / count));
+                }
+            }
+
+            if (f.op_type == 18) arr[cell] = minVal;
+            else if (f.op_type == 19) arr[cell] = maxVal;
+            else if (f.op_type == 20) arr[cell] = sum / count;
+            else if (f.op_type == 21) arr[cell] = sum;
+            else if (f.op_type == 22) arr[cell] = sqrt(stdevSquared / count);
+        }
+
+        else if (f.op_type == 23 || f.op_type == 24)
+        {
+            sleep(arr[f.op_info1]);
+        }
+    }
+
+    free(sortedCells);
 }

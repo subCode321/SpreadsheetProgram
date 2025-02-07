@@ -329,113 +329,78 @@ Cell *Deletecell(int cell1, Cell *x)
     return x;
 }
 
-
-
-void countInDegrees(Cell *root, int *inDegree)
+void dfsCollectCells(int cell, Graph *graph, int *visited, int *stack, int *stackSize)
 {
-    if (!root)
-        return;
-    countInDegrees(root->left, inDegree);
-    inDegree[root->cell]++;
-    countInDegrees(root->right, inDegree);
+    visited[cell] = 1;
+
+    // For each cell that depends on the current cell
+    for (int i = 0; i < NUM_CELLS; i++)
+    {
+        if (graph->adjLists_head[i])
+        {
+            Cell *current = graph->adjLists_head[i];
+            // Search for our cell in the dependency list
+            while (current)
+            {
+                if (current->cell == cell)
+                {
+                    // Found a dependent cell, recursively process it if not visited
+                    if (!visited[i])
+                    {
+                        dfsCollectCells(i, graph, visited, stack, stackSize);
+                    }
+                    break;
+                }
+                if (current->cell < cell)
+                    current = current->right;
+                else
+                    current = current->left;
+            }
+        }
+    }
+
+    // Add current cell to stack after processing all dependencies
+    stack[(*stackSize)++] = cell;
 }
 
-void processAdjacent(Cell *root, int *inDegree, int *queue, int *rear)
+int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 {
-    if (!root)
-        return;
-    processAdjacent(root->left, inDegree, queue, rear);
+    *hasCycle = 0;
+    *size = 0;
 
-    inDegree[root->cell]--;
-    if (inDegree[root->cell] == 0)
+    int *visited = (int *)calloc(NUM_CELLS, sizeof(int));
+    int *stack = (int *)malloc(NUM_CELLS * sizeof(int));
+    if (!visited || !stack)
     {
-        queue[(*rear)++] = root->cell;
-    }
-
-    processAdjacent(root->right, inDegree, queue, rear);
-}
-
-int *topoSort(Graph *graph, int *size, int *hasCycle)
-{
-    *hasCycle = 0; // Initialize to no cycle
-    *size = 0;     // Initialize size to 0
-
-    int *inDegree = (int *)calloc(NUM_CELLS, sizeof(int));
-    if (!inDegree)
-        return NULL;
-
-    // Count in-degrees
-    int totalVertices = 0;
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        if (graph->adjLists_head[i] != NULL)
-        {
-            countInDegrees(graph->adjLists_head[i], inDegree);
-        }
-    }
-
-    // Count all non-null nodes as vertices
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        if (graph->adjLists_head[i] != NULL || inDegree[i] > 0)
-        {
-            totalVertices++;
-        }
-    }
-
-    // Create queue
-    int *queue = (int *)malloc(NUM_CELLS * sizeof(int));
-    if (!queue)
-    {
-        free(inDegree);
+        free(visited);
+        free(stack);
         return NULL;
     }
-    int front = 0, rear = 0;
 
-    // Add vertices with 0 in-degree
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        if (inDegree[i] == 0 && (graph->adjLists_head[i] != NULL))
-        {
-            queue[rear++] = i;
-        }
-    }
+    int stackSize = 0;
 
-    // Create result array
-    int *result = (int *)malloc(NUM_CELLS * sizeof(int));
+    // Start DFS from the modified cell
+    dfsCollectCells(startCell, graph, visited, stack, &stackSize);
+
+    // Reverse the stack to get topological order
+    int *result = (int *)malloc(stackSize * sizeof(int));
     if (!result)
     {
-        free(inDegree);
-        free(queue);
-        return NULL;
-    }
-    int resultIndex = 0;
-
-    // Process vertices
-    while (front < rear)
-    {
-        int v = queue[front++];
-        result[resultIndex++] = v;
-
-        // Process adjacent vertices
-        processAdjacent(graph->adjLists_head[v], inDegree, queue, &rear);
-    }
-
-    // Check for cycle
-    if (resultIndex < totalVertices)
-    {
-        *hasCycle = 1;
-        free(result);
-        free(inDegree);
-        free(queue);
+        free(visited);
+        free(stack);
         return NULL;
     }
 
-    // Cleanup
-    free(inDegree);
-    free(queue);
+    for (int i = 0; i < stackSize; i++)
+    {
+        result[i] = stack[stackSize - 1 - i];
+    }
 
-    *size = resultIndex;
+    *size = stackSize;
+
+    free(visited);
+    free(stack);
+
     return result;
 }
 

@@ -93,6 +93,7 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
         printf("Invalid range\n");
         return;
     }
+    AddFormula(graph,Addcell(first_cell),range_start,range_end,9);
 
     
     int min_value = arr[range_start];
@@ -175,8 +176,8 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph
         printf("Invalid range\n");
         return;
     }
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 10);
 
-    
     int max_value = arr[range_start];
 
     int start_row = range_start / C;
@@ -188,6 +189,8 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph
     {
         for (int idx = range_start; idx <= range_end; idx++)
         {
+            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
+
             if (arr[idx] > max_value)
             {
                 max_value = arr[idx];
@@ -246,6 +249,7 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
         printf("Invalid range\n");
         return;
     }
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 11);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -260,6 +264,7 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
 
         for (int col = col_start; col <= col_end; col++) {
             int idx = row * C + col;
+            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
             sum += arr[idx];
             count++;
         }
@@ -298,6 +303,9 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
         return;
     
     }
+
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 12);
+
     int start_row = range_start / C;
     int start_col = range_start % C;
     int end_row = range_end / C;
@@ -313,6 +321,7 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
 
         for (int col = col_start; col <= col_end; col++) {
             int idx = row * C + col;
+            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
             sum += arr[idx];
         }
     }
@@ -352,6 +361,9 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gr
         printf("Invalid range\n");
         return;
     }
+
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 13);
+
     int start_row = range_start / C;
     int start_col = range_start % C;
     int end_row = range_end / C;
@@ -368,6 +380,8 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gr
         for (int col = col_start; col <= col_end; col++)
         {
             int idx = row * C + col;
+            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
+
             sum += arr[idx];
             count++;
         }
@@ -391,7 +405,7 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gr
     arr[first_cell] = stdev;
 }
 
-void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
+void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 {
     int target_cell = cell_parser(a, C, R, 0, pos_equalto - 1, NULL);
     if (target_cell == -1) {
@@ -413,8 +427,8 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr)
         printf("SLEEP value must be a positive integer\n");
         return;
     }
+    AddFormula(graph, Addcell(target_cell), target_cell, sleep_value, 14);
 
-    
     sleep(sleep_value);
     arr[target_cell] = sleep_value;
 }

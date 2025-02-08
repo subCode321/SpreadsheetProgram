@@ -117,6 +117,11 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1,graph);
     int op = -1;
 
+    if (formulaArray[first_cell].op_type != -1)
+    {
+        Deleteedge(graph, first_cell, C);
+    }
+
     for (int i = pos_equalto + 1; i < pos_end; i++)
     {
         if (a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/')
@@ -216,6 +221,11 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *
         return;
     }
 
+    if (formulaArray[first_cell].op_type != -1)
+    {
+        Deleteedge(graph, first_cell, C);
+    }
+
     char *open_paren1 = strchr(a + pos_equalto, '(');
     char *close_paren1 = strchr(a + pos_equalto, ')');
 
@@ -235,9 +245,11 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *
         {
             if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'T' && a[pos_equalto + 3] == 'D' && a[pos_equalto + 4] == 'E' && a[pos_equalto + 5] == 'V')
             {
+                stdev_func(a,C,R,pos_equalto,pos_end,arr,graph);
             }
             else if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'L' && a[pos_equalto + 3] == 'E' && a[pos_equalto + 4] == 'E' && a[pos_equalto + 5] == 'P')
             {
+                sleep_func(a,C,R,pos_equalto,pos_end,arr,graph);
             }
         }
         else if (idx_open - pos_equalto-1 == 3)

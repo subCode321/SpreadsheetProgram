@@ -37,6 +37,9 @@ int arithmetic_eval2(int v1, int v2, char op){
     }
 }
 
+
+
+
 typedef struct Formula
 {
     int op_type;
@@ -255,7 +258,7 @@ Cell *Deleteedge(Graph *graph, int cell, int COLS)
         Cell *z = graph->adjLists_head[x.op_info2];
         Deletecell(cell, z);
     }
-    else if (x.op_type >= 18 && x.op_type <= 22) 
+    else if (x.op_type >= 9 && x.op_type <= 13) 
     {
         int startCell = x.op_info1;
         int endCell = x.op_info2;
@@ -485,7 +488,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
             arr[cell] = arithmetic_eval2(v1, v2, op);
         }
 
-        else if (f.op_type >= 18 && f.op_type <= 22) // Range operations
+        else if (f.op_type >= 9 && f.op_type <= 13) // Range operations
         {
             int startCell = f.op_info1;
             int endCell = f.op_info2;
@@ -523,19 +526,19 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
                 }
             }
 
-            if (f.op_type == 18)
+            if (f.op_type == 9)
                 arr[cell] = minVal;
-            else if (f.op_type == 19)
+            else if (f.op_type == 10)
                 arr[cell] = maxVal;
-            else if (f.op_type == 20)
+            else if (f.op_type == 11)
                 arr[cell] = sum / count;
-            else if (f.op_type == 21)
+            else if (f.op_type == 12)
                 arr[cell] = sum;
-            else if (f.op_type == 22)
+            else if (f.op_type == 13)
                 arr[cell] = sqrt(stdevSquared / count);
         }
 
-        else if (f.op_type == 23 || f.op_type == 24) // Delay operations
+        else if (f.op_type == 14) // Delay operations
         {
             sleep(arr[f.op_info1]);
         }

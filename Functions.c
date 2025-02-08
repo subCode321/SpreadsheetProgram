@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "Parser.h"
+#include "Graph.h"
 #include<math.h>
 #include <unistd.h> // For sleep function
 
@@ -105,6 +106,8 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
     {
         for (int idx = range_start; idx <= range_end; idx++)
         {
+            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
+
             if (arr[idx] < min_value)
             {
                 min_value = arr[idx];
@@ -121,6 +124,8 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Grap
             for (int col = col_start; col <= col_end; col++)
             {
                 int idx = row * C + col;
+                graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
+
                 if (arr[idx] < min_value)
                 {
                     min_value = arr[idx];

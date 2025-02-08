@@ -58,7 +58,7 @@ typedef struct Graph
     struct Cell **adjLists_head;
 } Graph;
 
-Formula formulaArray[NUM_CELLS];
+Formula formulaArray[NUM_CELLS] = {-1};
 
 void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
     Formula newFormula;
@@ -244,16 +244,12 @@ Cell *Deleteedge(Graph *graph, int cell, int COLS)
 {
     Formula x = formulaArray[cell];
 
-    if (x.op_type == 3 || x.op_type == 7 || x.op_type == 11 || x.op_type == 15 || x.op_type == 24)
-    {
+   
+    if(x.op_type>=1 && x.op_type<=4){
         Cell *y = graph->adjLists_head[x.op_info1];
         Deletecell(cell, y);
     }
-    else if(x.op_type == 4 || x.op_type == 8 || x.op_type == 12 || x.op_type == 16){
-        Cell *y = graph->adjLists_head[x.op_info2];
-        Deletecell(cell, y);
-    }
-    else if(x.op_type==5 || x.op_type == 9 || x.op_type == 13 || x.op_type == 17){
+    else if(x.op_type>=5 && x.op_type<=8){
         Cell *y = graph->adjLists_head[x.op_info1];
         Deletecell(cell, y);
         Cell *z = graph->adjLists_head[x.op_info2];

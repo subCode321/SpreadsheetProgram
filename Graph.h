@@ -48,7 +48,7 @@ void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int 
 void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle);
 int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle);
 void Recalc(Graph *graph, int C, int *arr, int startCell);
-
+extern Formula formulaArray[NUM_CELLS];
 int min2(int a, int b);
 int max2(int a, int b);
 

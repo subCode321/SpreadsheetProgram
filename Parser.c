@@ -53,6 +53,11 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gra
         printf("Invalid cell");
         return;
     }
+    if (formulaArray[first_cell].op_type !=-1)
+    {
+        Deleteedge(graph, first_cell, C);
+    
+    }
     int second_cell = -1;
     int is_cell = 0;
     if (isDigit(a[pos_equalto + 1]))

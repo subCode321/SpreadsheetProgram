@@ -405,31 +405,44 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gr
     arr[first_cell] = stdev;
 }
 
-void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
+void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
 {
-    int target_cell = cell_parser(a, C, R, 0, pos_equalto - 1, NULL);
-    if (target_cell == -1) {
+    int target_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
+    if (target_cell == -1)
+    {
         printf("Invalid destination cell\n");
         return;
     }
 
-    
     char *open_paren = strchr(a + pos_equalto, '(');
     char *close_paren = strchr(a + pos_equalto, ')');
-    if (!open_paren || !close_paren) {
-        printf("Invalid SLEEP syntax\n");
+    if (!open_paren || !close_paren || close_paren <= open_paren + 1)
+    {
+        printf("Invalid SLEEP syntax: Missing or misplaced parentheses\n");
+        return;
+    }
+
+    char *colon_pos = strchr(open_paren + 1, ':');
+    if (colon_pos)
+    {
+        printf("SLEEP function does not support ranges\n");
+        return;
+    }
+
+
+    int sleep_value = cell_parser(a, C, R, open_paren - a + 1, close_paren - a - 1, graph);
+    if (sleep_value <= 0)
+    {
+        printf("SLEEP value must evaluate to a positive integer\n");
         return;
     }
 
     
-    int sleep_value = atoi(open_paren + 1);
-    if (sleep_value <= 0) {
-        printf("SLEEP value must be a positive integer\n");
-        return;
-    }
     AddFormula(graph, Addcell(target_cell), target_cell, sleep_value, 14);
 
+    
     sleep(sleep_value);
     arr[target_cell] = sleep_value;
-}
 
+    printf("Slept for %d seconds and updated cell %d\n", sleep_value, target_cell);
+}

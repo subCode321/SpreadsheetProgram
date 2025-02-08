@@ -4,6 +4,7 @@
 #include "display.h"
 #include "Parser.h"
 #include <string.h>
+#include <limits.h>
 
 int min(int x, int y)
 {
@@ -25,6 +26,7 @@ void printer(int currx, int curry, int *arr, int C, int R)
 {
     printf("   ");
 
+    // Print column headers (A, B, C...)
     for (int i = 0; i < min(10, C - currx); i++)
     {
         int val = currx + i + 1;
@@ -44,16 +46,27 @@ void printer(int currx, int curry, int *arr, int C, int R)
         {
             s2[idx - 1 - j] = s[j];
         }
-        printf("%-10s", s);
+        printf("%-10s", s2); // Print column header
     }
     printf("\n");
 
+    // Print row data
     for (int j = 0; j < min(10, R - curry); j++)
-    {   
-        printf("%-3d", curry + j + 1);
+    {
+        printf("%-3d", curry + j + 1); // Print row numbers
+
         for (int i = 0; i < min(10, C - currx); i++)
         {
-            printf("%-10d", arr[(currx + i) + C * (curry + j)]);
+            int value = arr[(currx + i) + C * (curry + j)];
+
+            if (value == INT_MIN)
+            {
+                printf("%-10s", "Err"); // Print "Err" for error cells
+            }
+            else
+            {
+                printf("%-10d", value); // Print valid cell values
+            }
         }
         printf("\n");
     }

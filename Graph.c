@@ -546,3 +546,41 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
 
     free(sortedCells);
 }
+void printAVLTree(Cell *root, int level)
+{
+    if (root == NULL)
+        return;
+
+    // Print right subtree first (will appear at the top)
+    printAVLTree(root->right, level + 1);
+
+    // Print current node with proper indentation
+    for (int i = 0; i < level; i++)
+        printf("    "); // 4 spaces for each level
+
+    // Print current node value and its height
+    printf("%d (h=%d)\n", root->cell, root->height);
+
+    // Print left subtree
+    printAVLTree(root->left, level + 1);
+}
+
+// Wrapper function to print the AVL tree for a specific cell from the graph
+void printCellDependencies(Graph *graph, int cell)
+{
+    if (cell < 0 || cell >= NUM_CELLS || graph == NULL)
+    {
+        printf("Invalid cell number or graph is NULL\n");
+        return;
+    }
+
+    Cell *root = graph->adjLists_head[cell];
+    if (root == NULL)
+    {
+        printf("Cell %d has no dependencies\n", cell);
+        return;
+    }
+
+    printf("Dependencies for cell %d:\n", cell);
+    printAVLTree(root, 0);
+}

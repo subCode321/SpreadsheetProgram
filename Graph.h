@@ -51,6 +51,8 @@ void Recalc(Graph *graph, int C, int *arr, int startCell);
 extern Formula formulaArray[NUM_CELLS];
 int min2(int a, int b);
 int max2(int a, int b);
+void printAVLTree(Cell *root, int level);
+void printCellDependencies(Graph *graph, int cell);
 
 // Add this if arithmetic evaluation or square root is defined elsewhere
 

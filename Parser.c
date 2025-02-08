@@ -120,6 +120,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph
     if (formulaArray[first_cell].op_type != -1)
     {
         Deleteedge(graph, first_cell, C);
+        printCellDependencies(graph, 1);
     }
 
     for (int i = pos_equalto + 1; i < pos_end; i++)

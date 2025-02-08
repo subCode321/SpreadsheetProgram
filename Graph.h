@@ -1,47 +1,57 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-typedef struct Stack
-{
-    int data;
-    struct Stack *next_in_stack;
-} Stack;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+#define NUM_CELLS 18259722 // Define the maximum number of cells
+
+// Formula structure to represent different types of operations
+typedef struct Formula
+{
+    int op_type;
+    int op_info1;
+    int op_info2;
+} Formula;
+
+// Cell structure representing a node in an AVL tree
 typedef struct Cell
 {
-    int cell_id;
-    int op_type;
-    int op_info;
-    struct Cell *prev;
+    int cell;
+    struct Cell *left;
+    struct Cell *right;
+    int height;
 } Cell;
 
+// Graph structure holding the adjacency list (as AVL trees)
 typedef struct Graph
 {
-    int num_cells;
-    int num_edges;
-    Cell **adjacency_list;
+    struct Cell **adjLists_head;
 } Graph;
 
-Stack *createStackNode(int data);
-Cell *Addcell(int cell, int op_type, int op_info, Cell *prev);
-Graph *CreateGraph(void);
-void Addedge(int cell1, int cell2, int op_type, int op_info, Graph *graph);
-void Toposort(Graph *graph, int v, int visited[], Stack **stack);
-void Recalc(Stack *stack, Graph *graph, int *cell_values, int new_value, int givencell);
+// Function prototypes
+Graph *CreateGraph();
+Cell *Addcell(int cell);
+Cell *Addedge(int cell1, Cell *x);
+Cell *Deleteedge(Graph *graph, int cell, int COLS);
+Cell *Deletecell(int cell1, Cell *x);
 
-#define OP_ADD 1
-#define OP_SUBTRACT 2
-#define OP_MULT_CELL 3
-#define OP_MULT_CONST 4
-#define OP_DIV_DENOM_CONST 5
-#define OP_DIV_NUM_CONST 6
-#define OP_DIV_DENOM_CELL 7
-#define OP_DIV_NUM_CELL 8
-#define OP_MIN 9
-#define OP_MAX 10
-#define OP_AVG 11
-#define OP_SUM 12
-#define OP_STDEV 13
-#define OP_SLEEP 14
+int getHeight(Cell *c);
+int getBalance(Cell *c);
+Cell *rightRotation(Cell *y);
+Cell *leftRotation(Cell *x);
 
-#endif
+void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type);
+
+void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle);
+void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle);
+int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle);
+void Recalc(Graph *graph, int C, int *arr, int startCell);
+
+int min2(int a, int b);
+int max2(int a, int b);
+
+// Add this if arithmetic evaluation or square root is defined elsewhere
+
+#endif // GRAPH_H

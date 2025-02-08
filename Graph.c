@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include <unistd.h> // For sleep function
 #define NUM_CELLS 18259722
 
 int min2(int a, int b)
@@ -17,6 +19,23 @@ int max2(int a, int b)
     return b;
 }
 
+int arithmetic_eval2(int v1, int v2, char op){
+    if (op == '+'){
+        return v1 + v2;
+    }
+    
+    else if (op == '-'){
+        return v1 - v2;
+    }
+    
+    else if (op == '*'){
+        return v1 * v2;
+    }
+    
+    else if (op == '/'){
+        return v1 / v2;
+    }
+}
 
 typedef struct Formula
 {
@@ -49,13 +68,10 @@ void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
     // (Const + Cell)           4       Value1       Cell2
     // (Cell + Cell)            5       Cell1        Cell2
     newFormula.op_type = op_type;
-    newFormula.op_info1 = NULL;
-    newFormula.op_info2 = NULL;
-    if(op_type == 1 || op_type == 24){
+    newFormula.op_info1 = -1;
+    newFormula.op_info2 = -1;
+    if(op_type == 0){
         newFormula.op_info1 = c1;
-    }
-    else if(op_type == 23){
-        ;
     }
     else{
         newFormula.op_info1 = c1;
@@ -66,21 +82,21 @@ void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
     
 }
 
-int height(Cell *c)
+int getHeight(Cell *c)
 {
     if (c == NULL)
         return 0;
     return c->height;
 }
 
-int balance(Cell *c)
+int getBalance(Cell *c)
 {
     if (c == NULL)
         return 0;
-    return height(c->left) - height(c->right);
+    return getHeight(c->left) - getHeight(c->right);
 }
 
-Cell *LL(Cell *y)
+Cell *rightRotation(Cell *y)
 { 
     Cell *x = y->left;
     Cell *T2 = x->right;
@@ -88,21 +104,21 @@ Cell *LL(Cell *y)
     x->right = y;
     y->left = T2;
 
-    y->height = max2(height(y->left), height(y->right)) + 1;
-    x->height = max2(height(x->left), height(x->right)) + 1;
+    y->height = max2(getHeight(y->left), getHeight(y->right)) + 1;
+    x->height = max2(getHeight(x->left), getHeight(x->right)) + 1;
 
     return x;
 }
 
-Cell *RR(Cell *x){
+Cell *leftRotation(Cell *x){
     Cell *y = x->right;
     Cell *T2 = y->left;
 
     y->left = x;
     x->right = T2;
 
-    x->height = max2(height(x->left), height(x->right)) + 1;
-    y->height = max2(height(y->left), height(y->right)) + 1;
+    x->height = max2(getHeight(x->left), getHeight(x->right)) + 1;
+    y->height = max2(getHeight(y->left), getHeight(y->right)) + 1;
 
     return y;
 }
@@ -165,25 +181,25 @@ Cell *Addedge(int cell1, Cell *x)
         return x;
     }
 
-    x->height = 1 + max2(height(x->left), height(x->right));
-    int bal = balance(x);
+    x->height = 1 + max2(getHeight(x->left), getHeight(x->right));
+    int bal = getBalance(x);
 
     if (bal > 1 && cell1 < x->left->cell)
-        return LL(x);
+        return rightRotation(x);
 
     if (bal < -1 && cell1 > x->right->cell)
-        return RR(x);
+        return leftRotation(x);
 
     if (bal > 1 && cell1 > x->left->cell)
     {
-        x->left = RR(x->left);
-        return LL(x);
+        x->left = leftRotation(x->left);
+        return rightRotation(x);
     }
 
     if (bal < -1 && cell1 < x->right->cell)
     {
-        x->right = LL(x->right);
-        return RR(x);
+        x->right = rightRotation(x->right);
+        return leftRotation(x);
     }
 
     return x;
@@ -221,6 +237,8 @@ Assignment               1       Value         NULL
 (SLEEP Cell)             24       Cell1            NULL
 
 */
+
+Cell *Deletecell(int cell1, Cell *x);
 
 Cell *Deleteedge(Graph *graph, int cell, int COLS)
 {
@@ -305,63 +323,31 @@ Cell *Deletecell(int cell1, Cell *x)
     if (x == NULL)
         return x;
 
-    x->height = 1 + max2(height(x->left), height(x->right));
-    int bal = balance(x);
+    x->height = 1 + max2(getHeight(x->left), getHeight(x->right));
+    int bal = getBalance(x);
 
-    if (bal > 1 && balance(x->left) >= 0)
-        return LL(x);
+    if (bal > 1 && getBalance(x->left) >= 0)
+        return rightRotation(x);
 
-    if (bal > 1 && balance(x->left) < 0)
+    if (bal > 1 && getBalance(x->left) < 0)
     {
-        x->left = RR(x->left);
-        return LL(x);
+        x->left = leftRotation(x->left);
+        return rightRotation(x);
     }
 
-    if (bal < -1 && balance(x->right) <= 0)
-        return RR(x);
+    if (bal < -1 && getBalance(x->right) <= 0)
+        return leftRotation (x);
 
-    if (bal < -1 && balance(x->right) > 0)
+    if (bal < -1 && getBalance(x->right) > 0)
     {
-        x->right = LL(x->right);
-        return RR(x);
+        x->right = rightRotation(x->right);
+        return leftRotation(x);
     }
 
     return x;
 }
 
-void dfsCollectCells(int cell, Graph *graph, int *visited, int *stack, int *stackSize)
-{
-    visited[cell] = 1;
-
-    // For each cell that depends on the current cell
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        if (graph->adjLists_head[i])
-        {
-            Cell *current = graph->adjLists_head[i];
-            // Search for our cell in the dependency list
-            while (current)
-            {
-                if (current->cell == cell)
-                {
-                    // Found a dependent cell, recursively process it if not visited
-                    if (!visited[i])
-                    {
-                        dfsCollectCells(i, graph, visited, stack, stackSize);
-                    }
-                    break;
-                }
-                if (current->cell < cell)
-                    current = current->right;
-                else
-                    current = current->left;
-            }
-        }
-    }
-
-    // Add current cell to stack after processing all dependencies
-    stack[(*stackSize)++] = cell;
-}
+void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle);
 
 int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 {
@@ -369,45 +355,96 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
     *size = 0;
 
     int *visited = (int *)calloc(NUM_CELLS, sizeof(int));
+    int *recStack = (int *)calloc(NUM_CELLS, sizeof(int)); // Recursion stack for cycle detection
     int *stack = (int *)malloc(NUM_CELLS * sizeof(int));
-    if (!visited || !stack)
+
+    if (!visited || !recStack || !stack)
     {
         free(visited);
+        free(recStack);
         free(stack);
         return NULL;
     }
 
     int stackSize = 0;
 
-    // Start DFS from the modified cell
-    dfsCollectCells(startCell, graph, visited, stack, &stackSize);
+    // Start DFS from the modified cell and traverse its AVL dependency tree
+    dfsCollectCells(startCell, graph, visited, recStack, stack, &stackSize, hasCycle);
 
-    // Reverse the stack to get topological order
+    if (*hasCycle)
+    {
+        // If a cycle is detected, clean up and return NULL
+        free(visited);
+        free(recStack);
+        free(stack);
+        return NULL;
+    }
+
+    // No need to reverse the stack since we want the starting cell processed first
     int *result = (int *)malloc(stackSize * sizeof(int));
     if (!result)
     {
         free(visited);
+        free(recStack);
         free(stack);
         return NULL;
     }
 
     for (int i = 0; i < stackSize; i++)
     {
-        result[i] = stack[stackSize - 1 - i];
+        result[i] = stack[i];
     }
 
     *size = stackSize;
 
     free(visited);
+    free(recStack);
     free(stack);
 
     return result;
 }
 
-void Recalc(Graph *graph, int C, int *arr)
+// Helper function to perform in-order traversal of the AVL tree
+void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
+{
+    if (!root || *hasCycle)
+        return;
+
+    // Process the current node (dependent cell) before traversing its dependencies
+    int dependentCell = root->cell;
+    if (!visited[dependentCell])
+    {
+        dfsCollectCells(dependentCell, graph, visited, recStack, stack, stackSize, hasCycle);
+    }
+    else if (recStack[dependentCell])
+    {
+        *hasCycle = 1; // Cycle detected
+        return;
+    }
+
+    // Traverse the left and right subtrees
+    traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
+    traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
+}
+
+// Main DFS function that starts from a given cell and traverses its AVL tree of dependencies
+void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
+{
+    visited[cell] = 1;
+    recStack[cell] = 1; // Mark the current node in the recursion stack
+
+    stack[(*stackSize)++] = cell; // Add current cell to stack before processing dependencies
+
+    // Traverse the entire AVL tree of dependencies for this cell
+    traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
+
+    recStack[cell] = 0; // Remove from recursion stack after processing
+}
+
+void Recalc(Graph *graph, int C, int *arr, int startCell)
 {
     int size, hasCycle;
-    int *sortedCells = topoSort(graph, &size, &hasCycle);
+    int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
 
     if (hasCycle)
     {
@@ -416,34 +453,43 @@ void Recalc(Graph *graph, int C, int *arr)
         return;
     }
 
+    // Reset all dependent cells before recalculation
+    for (int i = 0; i < size; i++)
+    {
+        arr[sortedCells[i]] = 0;
+    }
+
     for (int i = 0; i < size; i++)
     {
         int cell = sortedCells[i];
         Formula f = formulaArray[cell];
 
-        if (f.op_type == 1)
+        if (f.op_type == 0)
         {
             arr[cell] = f.op_info1;
         }
 
-        else if (f.op_type >= 2 && f.op_type <= 17)
+        else if (f.op_type >= 1 && f.op_type <= 4) // Cell and constant case
         {
-            int v1 = f.op_info1;
+            int v1 = arr[f.op_info1];
             int v2 = f.op_info2;
-
-            if (f.op_type >= 3 && f.op_type <= 17) 
-            {
-                v1 = arr[f.op_info1]; 
-                if (f.op_info2 != -1) v2 = arr[f.op_info2];
-            }
-
-            arr[cell] = arithmetic_eval(v1, v2, (f.op_type % 4 == 1) ? '+' :
-                                             (f.op_type % 4 == 2) ? '-' :
-                                             (f.op_type % 4 == 3) ? '*' :
-                                             '/');
+            char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-'
+                                           : (f.op_type == 3)   ? '*'
+                                                                : '/';
+            arr[cell] = arithmetic_eval2(v1, v2, op);
         }
 
-        else if (f.op_type >= 18 && f.op_type <= 22)
+        else if (f.op_type >= 5 && f.op_type <= 8) // Cell and cell case
+        {
+            int v1 = arr[f.op_info1];
+            int v2 = arr[f.op_info2];
+            char op = (f.op_type == 5) ? '+' : (f.op_type == 6) ? '-'
+                                           : (f.op_type == 7)   ? '*'
+                                                                : '/';
+            arr[cell] = arithmetic_eval2(v1, v2, op);
+        }
+
+        else if (f.op_type >= 18 && f.op_type <= 22) // Range operations
         {
             int startCell = f.op_info1;
             int endCell = f.op_info2;
@@ -464,20 +510,36 @@ void Recalc(Graph *graph, int C, int *arr)
 
                     sum += val;
                     count++;
-                    if (val < minVal) minVal = val;
-                    if (val > maxVal) maxVal = val;
-                    stdevSquared += (val - (sum / count)) * (val - (sum / count));
+                    if (val < minVal)
+                        minVal = val;
+                    if (val > maxVal)
+                        maxVal = val;
                 }
             }
 
-            if (f.op_type == 18) arr[cell] = minVal;
-            else if (f.op_type == 19) arr[cell] = maxVal;
-            else if (f.op_type == 20) arr[cell] = sum / count;
-            else if (f.op_type == 21) arr[cell] = sum;
-            else if (f.op_type == 22) arr[cell] = sqrt(stdevSquared / count);
+            double mean = (double)sum / count;
+            for (int row = startRow; row <= endRow; row++)
+            {
+                for (int col = startCol; col <= endCol; col++)
+                {
+                    int idx = row * C + col;
+                    stdevSquared += (arr[idx] - mean) * (arr[idx] - mean);
+                }
+            }
+
+            if (f.op_type == 18)
+                arr[cell] = minVal;
+            else if (f.op_type == 19)
+                arr[cell] = maxVal;
+            else if (f.op_type == 20)
+                arr[cell] = sum / count;
+            else if (f.op_type == 21)
+                arr[cell] = sum;
+            else if (f.op_type == 22)
+                arr[cell] = sqrt(stdevSquared / count);
         }
 
-        else if (f.op_type == 23 || f.op_type == 24)
+        else if (f.op_type == 23 || f.op_type == 24) // Delay operations
         {
             sleep(arr[f.op_info1]);
         }

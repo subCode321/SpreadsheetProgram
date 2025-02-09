@@ -5,7 +5,6 @@
 #include <unistd.h> // For sleep function
 #include <limits.h>
 
-
 #define NUM_CELLS 18259722
 
 int min2(int a, int b)
@@ -22,26 +21,29 @@ int max2(int a, int b)
     return b;
 }
 
-int arithmetic_eval2(int v1, int v2, char op){
-    if (op == '+'){
+int arithmetic_eval2(int v1, int v2, char op)
+{
+    if (op == '+')
+    {
         return v1 + v2;
     }
-    
-    else if (op == '-'){
+
+    else if (op == '-')
+    {
         return v1 - v2;
     }
-    
-    else if (op == '*'){
+
+    else if (op == '*')
+    {
         return v1 * v2;
     }
-    
-    else if (op == '/'){
+
+    else if (op == '/')
+    {
         return v1 / v2;
     }
+    return INT_MIN;
 }
-
-
-
 
 typedef struct Formula
 {
@@ -64,9 +66,10 @@ typedef struct Graph
     struct Cell **adjLists_head;
 } Graph;
 
-Formula formulaArray[NUM_CELLS];
-
-void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
+Formula formulaArray[NUM_CELLS] = {-1};
+Cell *Addedge(int cell1, Cell *x);
+void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type)
+{
     Formula newFormula;
     // Assignment               1       Value         NULL
     // (Const + Const)          2       Value1       Value2
@@ -76,16 +79,20 @@ void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
     newFormula.op_type = op_type;
     newFormula.op_info1 = -1;
     newFormula.op_info2 = -1;
-    if(op_type == 0){
+    if (op_type == 0)
+    {
         newFormula.op_info1 = c1;
     }
-    else{
+    else
+    {
         newFormula.op_info1 = c1;
         newFormula.op_info2 = c2;
     }
     formulaArray[cell->cell] = newFormula;
-    
-    
+    if (op_type == 14)
+    { // SLEEP operation
+        graph->adjLists_head[c1] = Addedge(cell->cell, graph->adjLists_head[c1]);
+    }
 }
 
 int getHeight(Cell *c)
@@ -103,7 +110,7 @@ int getBalance(Cell *c)
 }
 
 Cell *rightRotation(Cell *y)
-{ 
+{
     Cell *x = y->left;
     Cell *T2 = x->right;
 
@@ -116,7 +123,8 @@ Cell *rightRotation(Cell *y)
     return x;
 }
 
-Cell *leftRotation(Cell *x){
+Cell *leftRotation(Cell *x)
+{
     Cell *y = x->right;
     Cell *T2 = y->left;
 
@@ -128,7 +136,6 @@ Cell *leftRotation(Cell *x){
 
     return y;
 }
-
 
 Cell *Addcell(int cell)
 {
@@ -142,7 +149,7 @@ Cell *Addcell(int cell)
     new_cell->cell = cell;
     new_cell->left = NULL;
     new_cell->right = NULL;
-    new_cell->height = 1; 
+    new_cell->height = 1;
     return new_cell;
 }
 
@@ -211,6 +218,38 @@ Cell *Addedge(int cell1, Cell *x)
     return x;
 }
 
+/*
+Op                    op_type   op_info1    op_info2
+Assignment               1       Value         NULL
+(Const + Const)          2       Value1       Value2
+(Cell + Const)           3       Cell1        Value2
+(Const + Cell)           4       Value1       Cell2
+(Cell + Cell)            5       Cell1        Cell2
+
+(Const - Const)          6       Value1       Value2
+(Cell - Const)           7       Cell1        Value2
+(Const - Cell)           8       Value1       Cell2
+(Cell - Cell)            9       Cell1        Cell2
+
+(Const * Const)          10       Value1       Value2
+(Cell * Const)           11       Cell1        Value2
+(Const * Cell)           12       Value1       Cell2
+(Cell * Cell)            13       Cell1        Cell2
+
+(Const / Const)          14       Value1       Value2
+(Cell / Const)           15       Cell1        Value2
+(Const / Cell)           16       Value1       Cell2
+(Cell / Cell)            17       Cell1        Cell2
+
+(MIN)                    18      Starting Cell  Ending Cell
+(MAX)                    19      Starting Cell  Ending Cell
+(AVG)                    20      Starting Cell  Ending Cell
+(SUM)                    21      Starting Cell  Ending Cell
+(STDEV)                  22      Starting Cell  Ending Cell
+(SLEEP Const)            23       NULL            `NULL
+(SLEEP Cell)             24       Cell1            NULL
+
+*/
 void printAVLTree(Cell *root, int level)
 {
     if (root == NULL)
@@ -334,7 +373,7 @@ Cell *Deletecell(int cell1, Cell *x)
     }
 
     if (bal < -1 && getBalance(x->right) <= 0)
-        return leftRotation (x);
+        return leftRotation(x);
 
     if (bal < -1 && getBalance(x->right) > 0)
     {
@@ -371,9 +410,14 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 
     if (*hasCycle)
     {
+        // If a cycle is detected, clean up and return NULL
+        free(visited);
+        free(recStack);
+        free(stack);
         return NULL;
     }
 
+    // No need to reverse the stack since we want the starting cell processed first
     int *result = (int *)malloc(stackSize * sizeof(int));
     if (!result)
     {
@@ -385,7 +429,7 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 
     for (int i = 0; i < stackSize; i++)
     {
-        result[i] = stack[stackSize - 1 - i]; 
+        result[i] = stack[i];
     }
 
     *size = stackSize;
@@ -397,106 +441,48 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
     return result;
 }
 
+// Helper function to perform in-order traversal of the AVL tree
 void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
 {
     if (!root || *hasCycle)
         return;
 
+    // Process the current node (dependent cell) before traversing its dependencies
     int dependentCell = root->cell;
-
-    // Process left and right subtrees first
-    traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
-    traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
-
     if (!visited[dependentCell])
     {
-        visited[dependentCell] = 1;
-        recStack[dependentCell] = 1;
-
-        // Process dependencies through the adjacency list
-        Cell *deps = graph->adjLists_head[dependentCell];
-        if (deps)
-        {
-            traverseAVLTree(deps, graph, visited, recStack, stack, stackSize, hasCycle);
-        }
-
-        // Only add to stack and remove from recStack if we haven't detected a cycle
-        if (!*hasCycle)
-        {
-            stack[(*stackSize)++] = dependentCell;
-            recStack[dependentCell] = 0;
-        }
+        dfsCollectCells(dependentCell, graph, visited, recStack, stack, stackSize, hasCycle);
     }
     else if (recStack[dependentCell])
     {
-        // Check if this is actually forming a cycle
-        // We need to verify if this cell is part of a genuine dependency cycle
-        Formula f = formulaArray[dependentCell];
-        int isCycle = 0;
-
-        // Check if this cell depends on any cells currently in the recStack
-        if (f.op_type >= 1 && f.op_type <= 4)
-        {
-            if (recStack[f.op_info1])
-                isCycle = 1;
-        }
-        else if (f.op_type >= 5 && f.op_type <= 8)
-        {
-            if (recStack[f.op_info1] || recStack[f.op_info2])
-                isCycle = 1;
-        }
-
-        if (isCycle)
-        {
-            *hasCycle = 1;
-        }
+        *hasCycle = 1; // Cycle detected
+        return;
     }
+
+    // Traverse the left and right subtrees
+    traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
+    traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
 }
+
+// Main DFS function that starts from a given cell and traverses its AVL tree of dependencies
 void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
 {
-    if (*hasCycle)
-        return;
+    visited[cell] = 1;
+    recStack[cell] = 1; // Mark the current node in the recursion stack
 
-    printf("Starting DFS from cell: %d\n", cell);
+    stack[(*stackSize)++] = cell; // Add current cell to stack before processing dependencies
 
-    if (!visited[cell])
-    {
-        printf("Cell %d not visited, marking visited and adding to recStack\n", cell);
-        visited[cell] = 1;
-        recStack[cell] = 1;
+    // Traverse the entire AVL tree of dependencies for this cell
+    traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
 
-        // Process dependencies through AVL tree
-        if (graph->adjLists_head[cell])
-        {
-            printf("Processing dependencies of starting cell %d\n", cell);
-            traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
-        }
-
-        // Add the starting cell to stack after its dependencies
-        printf("Adding starting cell %d to stack and removing from recStack\n", cell);
-        stack[(*stackSize)++] = cell;
-        recStack[cell] = 0;
-    }
-    else if (recStack[cell])
-    {
-        printf("CYCLE DETECTED: Starting cell %d already in recStack\n", cell);
-        *hasCycle = 1;
-    }
-    else
-    {
-        printf("Starting cell %d already visited but not in recStack\n", cell);
-    }
+    recStack[cell] = 0; // Remove from recursion stack after processing
 }
+
 void Recalc(Graph *graph, int C, int *arr, int startCell)
 {
     int size, hasCycle;
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
-    for (int i = 0; i < size; i++) {
-        printf("%d ", sortedCells[i]);
-        printCellDependencies(graph, sortedCells[i]);
-        printf("\n");
-    }
-    printf("\n");
+
     if (hasCycle)
     {
         printf("Error: Circular dependency detected. Command rejected.\n");
@@ -529,8 +515,8 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
 
         else if (f.op_type >= 1 && f.op_type <= 4) // Cell and constant case
         {
-            int v1 = arr[f.op_info1]; 
-            int v2 = f.op_info2;      
+            int v1 = arr[f.op_info1];
+            int v2 = f.op_info2;
 
             if (v1 == INT_MIN)
             {
@@ -538,12 +524,10 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
                 continue;
             }
 
-            
             char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-'
                                            : (f.op_type == 3)   ? '*'
                                                                 : '/';
 
-            
             if (op == '/' && v2 == 0)
             {
                 printf("Error: Division by zero in cell %d\n", cell);
@@ -644,22 +628,25 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
                 arr[cell] = sqrt(stdevSquared / count);
         }
 
-        else if (f.op_type == 14) // Delay operations (SLEEP)
+        else if (f.op_type == 14) // Handle SLEEP operation
         {
-            if (arr[f.op_info1] == INT_MIN)
+            int ref_cell = f.op_info1;
+            if (arr[ref_cell] == INT_MIN)
             {
                 arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
 
-            int sleepTime = arr[f.op_info1];
-            sleep(sleepTime);
-            arr[cell] = sleepTime; // Assign the sleep value to the cell
-        }
-        else
-        {
-            printf("Error: Unsupported operation type %d in cell %d\n", f.op_type, cell);
-            arr[cell] = INT_MIN; // Mark as error
+            int sleep_value = arr[ref_cell];
+            if (sleep_value <= 0)
+            {
+                printf("Error: Invalid sleep value in cell %d\n", cell);
+                arr[cell] = INT_MIN; // Propagate error
+                continue;
+            }
+
+            sleep(sleep_value);      // Perform sleep operation
+            arr[cell] = sleep_value; // Update the cell value
         }
     }
 

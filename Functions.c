@@ -207,6 +207,8 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph
             for (int col = col_start; col <= col_end; col++)
             {
                 int idx = row * C + col;
+                graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
+
                 if (arr[idx] > max_value)
                 {
                     max_value = arr[idx];

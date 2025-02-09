@@ -403,43 +403,55 @@ void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int 
         return;
 
     int dependentCell = root->cell;
-    printf("Traversing dependent cell: %d\n", dependentCell);
+
+    // Process left and right subtrees first
+    traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
+    traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
 
     if (!visited[dependentCell])
     {
-        printf("Cell %d not visited, marking visited and adding to recStack\n", dependentCell);
         visited[dependentCell] = 1;
         recStack[dependentCell] = 1;
 
-        // First process all dependencies
+        // Process dependencies through the adjacency list
         Cell *deps = graph->adjLists_head[dependentCell];
         if (deps)
         {
-            printf("Processing dependencies of cell %d\n", dependentCell);
             traverseAVLTree(deps, graph, visited, recStack, stack, stackSize, hasCycle);
         }
 
-        // Then process other nodes in AVL tree (other dependencies)
-        traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
-        traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
-
-        // Add to stack only after all dependencies are processed
-        printf("Adding cell %d to stack and removing from recStack\n", dependentCell);
-        stack[(*stackSize)++] = dependentCell;
-        recStack[dependentCell] = 0;
+        // Only add to stack and remove from recStack if we haven't detected a cycle
+        if (!*hasCycle)
+        {
+            stack[(*stackSize)++] = dependentCell;
+            recStack[dependentCell] = 0;
+        }
     }
     else if (recStack[dependentCell])
     {
-        printf("CYCLE DETECTED: Cell %d already in recStack\n", dependentCell);
-        *hasCycle = 1;
-        return;
-    }
-    else
-    {
-        printf("Cell %d already visited but not in recStack\n", dependentCell);
+        // Check if this is actually forming a cycle
+        // We need to verify if this cell is part of a genuine dependency cycle
+        Formula f = formulaArray[dependentCell];
+        int isCycle = 0;
+
+        // Check if this cell depends on any cells currently in the recStack
+        if (f.op_type >= 1 && f.op_type <= 4)
+        {
+            if (recStack[f.op_info1])
+                isCycle = 1;
+        }
+        else if (f.op_type >= 5 && f.op_type <= 8)
+        {
+            if (recStack[f.op_info1] || recStack[f.op_info2])
+                isCycle = 1;
+        }
+
+        if (isCycle)
+        {
+            *hasCycle = 1;
+        }
     }
 }
-
 void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
 {
     if (*hasCycle)

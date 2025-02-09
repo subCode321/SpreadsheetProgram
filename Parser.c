@@ -53,7 +53,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Gra
         printf("Invalid cell");
         return;
     }
-    if (formulaArray[first_cell].op_type !=-1)
+    if (formulaArray[first_cell].op_type > 0)
     {
         Deleteedge(graph, first_cell, C);
     
@@ -117,10 +117,9 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1,graph);
     int op = -1;
 
-    if (formulaArray[first_cell].op_type != -1)
+    if (formulaArray[first_cell].op_type > 0)
     {
         Deleteedge(graph, first_cell, C);
-        printCellDependencies(graph, 1);
     }
 
     for (int i = pos_equalto + 1; i < pos_end; i++)

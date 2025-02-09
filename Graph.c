@@ -64,7 +64,7 @@ typedef struct Graph
     struct Cell **adjLists_head;
 } Graph;
 
-Formula formulaArray[NUM_CELLS] = {-1};
+Formula formulaArray[NUM_CELLS] = {[0 ... NUM_CELLS - 1] = {.op_type = -1, .op_info1 = 0, .op_info2 = 0}};
 
 void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
     Formula newFormula;
@@ -211,38 +211,6 @@ Cell *Addedge(int cell1, Cell *x)
     return x;
 }
 
-/*
-Op                    op_type   op_info1    op_info2
-Assignment               1       Value         NULL
-(Const + Const)          2       Value1       Value2
-(Cell + Const)           3       Cell1        Value2
-(Const + Cell)           4       Value1       Cell2
-(Cell + Cell)            5       Cell1        Cell2
-
-(Const - Const)          6       Value1       Value2
-(Cell - Const)           7       Cell1        Value2
-(Const - Cell)           8       Value1       Cell2
-(Cell - Cell)            9       Cell1        Cell2
-
-(Const * Const)          10       Value1       Value2
-(Cell * Const)           11       Cell1        Value2
-(Const * Cell)           12       Value1       Cell2
-(Cell * Cell)            13       Cell1        Cell2
-
-(Const / Const)          14       Value1       Value2
-(Cell / Const)           15       Cell1        Value2
-(Const / Cell)           16       Value1       Cell2
-(Cell / Cell)            17       Cell1        Cell2
-
-(MIN)                    18      Starting Cell  Ending Cell
-(MAX)                    19      Starting Cell  Ending Cell
-(AVG)                    20      Starting Cell  Ending Cell
-(SUM)                    21      Starting Cell  Ending Cell
-(STDEV)                  22      Starting Cell  Ending Cell
-(SLEEP Const)            23       NULL            `NULL
-(SLEEP Cell)             24       Cell1            NULL
-
-*/
 void printAVLTree(Cell *root, int level)
 {
     if (root == NULL)
@@ -470,17 +438,37 @@ void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int 
 // Main DFS function that starts from a given cell and traverses its AVL tree of dependencies
 void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
 {
+    if (*hasCycle)
+        return;
+
     if (!visited[cell])
     {
-        traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
+        visited[cell] = 1;
+        recStack[cell] = 1;
+
+        // Process dependencies through AVL tree
+        if (graph->adjLists_head[cell])
+        {
+            traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
+        }
+
+        // Add the starting cell to stack after its dependencies
+        stack[(*stackSize)++] = cell;
+        recStack[cell] = 0;
+    }
+    else if (recStack[cell])
+    {
+        *hasCycle = 1;
     }
 }
-
 void Recalc(Graph *graph, int C, int *arr, int startCell)
 {
     int size, hasCycle;
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
-
+    for (int i = 0; i < size; i++) {
+        printf("%d ", sortedCells[i]);
+    }
+    printf("\n");
     if (hasCycle)
     {
         printf("Error: Circular dependency detected. Command rejected.\n");
@@ -491,7 +479,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
     // Reset all dependent cells before recalculation
     for (int i = 0; i < size; i++)
     {
-        printf("%d ",sortedCells[i]);
         arr[sortedCells[i]] = 0;
     }
 
@@ -517,7 +504,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
             int v1 = arr[f.op_info1]; 
             int v2 = f.op_info2;      
 
-        
             if (v1 == INT_MIN)
             {
                 arr[cell] = INT_MIN; // Propagate error

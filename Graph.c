@@ -422,7 +422,7 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 
     for (int i = 0; i < stackSize; i++)
     {
-        result[i] = stack[i];
+        result[i] = stack[stackSize - 1 - i]; // Changed this line
     }
 
     *size = stackSize;
@@ -434,36 +434,35 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
     return result;
 }
 
-// Helper function to perform in-order traversal of the AVL tree
 void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
 {
     if (!root || *hasCycle)
         return;
 
-    // Process the current node (dependent cell) before traversing its dependencies
     int dependentCell = root->cell;
     if (!visited[dependentCell])
     {
         visited[dependentCell] = 1;
         recStack[dependentCell] = 1;
-        stack[(*stackSize)++] = dependentCell; // Add to stack immediately after visiting
 
-        // Process children in AVL tree first before going deeper into dependencies
-        traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
-        traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
-
-        // Now process the dependencies of this node
+        // First process all dependencies
         Cell *deps = graph->adjLists_head[dependentCell];
         if (deps)
         {
             traverseAVLTree(deps, graph, visited, recStack, stack, stackSize, hasCycle);
         }
 
+        // Then process other nodes in AVL tree (other dependencies)
+        traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
+        traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
+
+        // Add to stack only after all dependencies are processed
+        stack[(*stackSize)++] = dependentCell;
         recStack[dependentCell] = 0;
     }
     else if (recStack[dependentCell])
     {
-        *hasCycle = 1; // Cycle detected
+        *hasCycle = 1;
         return;
     }
 }

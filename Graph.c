@@ -444,31 +444,37 @@ void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int 
     int dependentCell = root->cell;
     if (!visited[dependentCell])
     {
-        dfsCollectCells(dependentCell, graph, visited, recStack, stack, stackSize, hasCycle);
+        visited[dependentCell] = 1;
+        recStack[dependentCell] = 1;
+        stack[(*stackSize)++] = dependentCell; // Add to stack immediately after visiting
+
+        // Process children in AVL tree first before going deeper into dependencies
+        traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
+        traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
+
+        // Now process the dependencies of this node
+        Cell *deps = graph->adjLists_head[dependentCell];
+        if (deps)
+        {
+            traverseAVLTree(deps, graph, visited, recStack, stack, stackSize, hasCycle);
+        }
+
+        recStack[dependentCell] = 0;
     }
     else if (recStack[dependentCell])
     {
         *hasCycle = 1; // Cycle detected
         return;
     }
-
-    // Traverse the left and right subtrees
-    traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
-    traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
 }
 
 // Main DFS function that starts from a given cell and traverses its AVL tree of dependencies
 void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
 {
-    visited[cell] = 1;
-    recStack[cell] = 1; // Mark the current node in the recursion stack
-
-    stack[(*stackSize)++] = cell; // Add current cell to stack before processing dependencies
-
-    // Traverse the entire AVL tree of dependencies for this cell
-    traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
-
-    recStack[cell] = 0; // Remove from recursion stack after processing
+    if (!visited[cell])
+    {
+        traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
+    }
 }
 
 void Recalc(Graph *graph, int C, int *arr, int startCell)
@@ -486,6 +492,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
     // Reset all dependent cells before recalculation
     for (int i = 0; i < size; i++)
     {
+        printf("%d ",sortedCells[i]);
         arr[sortedCells[i]] = 0;
     }
 

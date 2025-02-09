@@ -38,6 +38,7 @@ int arithmetic_eval2(int v1, int v2, char op){
     else if (op == '/'){
         return v1 / v2;
     }
+    return INT_MIN;
 }
 
 /*
@@ -685,23 +686,29 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
                 arr[cell] = sqrt(stdevSquared / count);
         }
 
-        else if (f.op_type == 14) // Delay operations (SLEEP)
+        else if (f.op_type == 14) // Handle SLEEP operation
         {
-            if (arr[f.op_info1] == INT_MIN)
+            int sleep_value;
+            if (f.op_info1 == cell) // SLEEP(CONSTANT)
             {
+                sleep_value = f.op_info2; 
+            }
+            else // SLEEP(CELL)
+            {
+                sleep_value = arr[f.op_info1]; // Referenced cell
+            }
+
+            if (sleep_value <= 0 || sleep_value == INT_MIN) // invalid value
+            {
+                printf("Error: Invalid sleep value in cell %d\n", cell);
                 arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
 
-            int sleepTime = arr[f.op_info1];
-            sleep(sleepTime);
-            arr[cell] = sleepTime; // Assign the sleep value to the cell
+            sleep(sleep_value);      //perform sleep operation
+            arr[cell] = sleep_value; //update the cell value
         }
-        else
-        {
-            printf("Error: Unsupported operation type %d in cell %d\n", f.op_type, cell);
-            arr[cell] = INT_MIN; // Mark as error
-        }
+
     }
 
     free(sortedCells);

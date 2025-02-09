@@ -5,6 +5,8 @@
 #include "Graph.h"
 #include<math.h>
 #include <unistd.h> // For sleep function
+#include <limits.h>
+
 
 int validate_range(int range_start, int range_end, int C) {
     
@@ -37,6 +39,7 @@ int arithmetic_eval(int v1, int v2, char op){
     else if (op == '/'){
         return v1 / v2;
     }
+    return INT_MIN;
 }
 
 int return_optype(char op){
@@ -55,6 +58,7 @@ int return_optype(char op){
     else if (op == '/'){
         return 4;
     }
+    return INT_MIN;
 }
 
 void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
@@ -422,27 +426,51 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         return;
     }
 
-    char *colon_pos = strchr(open_paren + 1, ':');
-    if (colon_pos)
+    int sleep_value = -1;
+    int ref_cell = cell_parser(a, C, R, open_paren - a + 1, close_paren - a - 1, graph);
+
+    // Determine whether it's a cell reference or a direct value
+    if (ref_cell != -1)
     {
-        printf("SLEEP function does not support ranges\n");
-        return;
+        sleep_value = arr[ref_cell];
+        if (sleep_value == INT_MIN)
+        {
+            printf("Referenced cell %d contains an error value\n", ref_cell);
+            arr[target_cell] = INT_MIN; // Propagate error
+            return;
+        }
+        graph->adjLists_head[ref_cell] = Addedge(target_cell, graph->adjLists_head[ref_cell]);
+    }
+    else
+    {
+        char *end_ptr;
+        sleep_value = strtol(open_paren + 1, &end_ptr, 10);
+        if (*end_ptr != ')' || sleep_value <= 0)
+        {
+            printf("SLEEP value must evaluate to a positive integer\n");
+            arr[target_cell] = INT_MIN; // Propagate error
+            return;
+        }
     }
 
-
-    int sleep_value = cell_parser(a, C, R, open_paren - a + 1, close_paren - a - 1, graph);
     if (sleep_value <= 0)
     {
         printf("SLEEP value must evaluate to a positive integer\n");
+        arr[target_cell] = INT_MIN; // Propagate error
         return;
     }
 
-    
-    AddFormula(graph, Addcell(target_cell), target_cell, sleep_value, 14);
+    printf("Parsed sleep value: %d\n", sleep_value);
 
-    
+    // Add formula and execute sleep
+    AddFormula(graph, Addcell(target_cell), ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14);
+
     sleep(sleep_value);
+
+    printf("Updating target cell %d with sleep value %d\n", target_cell, sleep_value);
     arr[target_cell] = sleep_value;
+
+    Recalc(graph, C, arr, target_cell);
 
     printf("Slept for %d seconds and updated cell %d\n", sleep_value, target_cell);
 }

@@ -529,6 +529,190 @@ CELL=SLEEP(CELL)                    15
 */
 
 
+// void Recalc(Graph *graph, int C, int *arr, int startCell)
+// {
+//     int size, hasCycle;
+//     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
+//     for (int i = 0; i < size; i++) {
+//         printf("%d ", sortedCells[i]);
+//         printCellDependencies(graph, sortedCells[i]);
+//         printf("\n");
+//     }
+//     printf("\n");
+//     if (hasCycle)
+//     {
+//         printf("Error: Circular dependency detected. Command rejected.\n");
+//         free(sortedCells);
+//         return;
+//     }
+
+//     // Reset all dependent cells before recalculation
+//     for (int i = 0; i < size; i++)
+//     {
+//         arr[sortedCells[i]] = 0;
+//     }
+
+//     for (int i = 0; i < size; i++)
+//     {
+//         int cell = sortedCells[i];
+//         Formula f = formulaArray[cell];
+
+//         if (f.op_type == 0)
+//         {
+//             if (f.op_info1 == INT_MIN)
+//             {
+//                 arr[cell] = INT_MIN; // Propagate error
+//             }
+//             else
+//             {
+//                 arr[cell] = f.op_info1; // Assign valid value
+//             }
+//         }
+
+//         else if (f.op_type >= 1 && f.op_type <= 4) // Cell and constant case
+//         {
+//             int v1 = arr[f.op_info1]; 
+//             int v2 = f.op_info2;      
+
+//             if (v1 == INT_MIN)
+//             {
+//                 arr[cell] = INT_MIN; // Propagate error
+//                 continue;
+//             }
+
+            
+//             char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-'
+//                                            : (f.op_type == 3)   ? '*'
+//                                                                 : '/';
+
+            
+//             if (op == '/' && v2 == 0)
+//             {
+//                 printf("Error: Division by zero in cell %d\n", cell);
+//                 arr[cell] = INT_MIN; // Propagate error
+//                 continue;
+//             }
+
+//             arr[cell] = arithmetic_eval2(v1, v2, op); // Perform operation
+//         }
+
+//         else if (f.op_type >= 5 && f.op_type <= 8) // Cell and cell case
+//         {
+//             int v1 = arr[f.op_info1];
+//             int v2 = arr[f.op_info2];
+
+//             if (f.op_type == 8 && v2 == 0)
+//             {
+//                 printf("Error: Division by zero in cell %d\n", cell);
+//                 arr[cell] = INT_MIN; // Mark this cell as ERR
+//                 continue;
+//             }
+
+//             if (v1 == INT_MIN || v2 == INT_MIN)
+//             {
+//                 arr[cell] = INT_MIN; // Propagate error
+//                 continue;
+//             }
+
+//             char op = (f.op_type == 5) ? '+' : (f.op_type == 6) ? '-'
+//                                            : (f.op_type == 7)   ? '*'
+//                                                                 : '/';
+//             arr[cell] = arithmetic_eval2(v1, v2, op);
+//         }
+
+//         else if (f.op_type >= 9 && f.op_type <= 13) // Range operations
+//         {
+//             int startCell = f.op_info1;
+//             int endCell = f.op_info2;
+
+//             int startRow = startCell / C;
+//             int startCol = startCell % C;
+//             int endRow = endCell / C;
+//             int endCol = endCell % C;
+
+//             int sum = 0, count = 0, stdevSquared = 0;
+//             int minVal = INT_MAX, maxVal = INT_MIN;
+//             int hasError = 0; // Track if any cell in the range has an error
+
+//             for (int row = startRow; row <= endRow; row++)
+//             {
+//                 for (int col = startCol; col <= endCol; col++)
+//                 {
+//                     int idx = row * C + col;
+//                     int val = arr[idx];
+
+//                     if (val == INT_MIN)
+//                     {
+//                         hasError = 1;
+//                         break;
+//                     }
+
+//                     sum += val;
+//                     count++;
+//                     if (val < minVal)
+//                         minVal = val;
+//                     if (val > maxVal)
+//                         maxVal = val;
+//                 }
+//                 if (hasError)
+//                     break;
+//             }
+
+//             if (hasError)
+//             {
+//                 arr[cell] = INT_MIN; // Propagate error
+//                 continue;
+//             }
+
+//             double mean = (double)sum / count;
+//             for (int row = startRow; row <= endRow; row++)
+//             {
+//                 for (int col = startCol; col <= endCol; col++)
+//                 {
+//                     int idx = row * C + col;
+//                     stdevSquared += (arr[idx] - mean) * (arr[idx] - mean);
+//                 }
+//             }
+
+//             if (f.op_type == 9)
+//                 arr[cell] = minVal;
+//             else if (f.op_type == 10)
+//                 arr[cell] = maxVal;
+//             else if (f.op_type == 11)
+//                 arr[cell] = sum / count;
+//             else if (f.op_type == 12)
+//                 arr[cell] = sum;
+//             else if (f.op_type == 13)
+//                 arr[cell] = sqrt(stdevSquared / count);
+//         }
+
+//         else if (f.op_type == 14) // Handle SLEEP operation
+//         {
+//             int sleep_value;
+//             if (f.op_info1 == cell) // SLEEP(CONSTANT)
+//             {
+//                 sleep_value = f.op_info2; 
+//             }
+//             else // SLEEP(CELL)
+//             {
+//                 sleep_value = arr[f.op_info1]; // Referenced cell
+//             }
+
+//             if (sleep_value <= 0 || sleep_value == INT_MIN) // invalid value
+//             {
+//                 printf("Error: Invalid sleep value in cell %d\n", cell);
+//                 arr[cell] = INT_MIN; // Propagate error
+//                 continue;
+//             }
+
+//             sleep(sleep_value);      //perform sleep operation
+//             arr[cell] = sleep_value; //update the cell value
+//         }
+
+//     }
+
+//     free(sortedCells);
+// }
 void Recalc(Graph *graph, int C, int *arr, int startCell)
 {
     int size, hasCycle;
@@ -560,93 +744,89 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
         if (f.op_type == 0)
         {
             if (f.op_info1 == INT_MIN)
-            {
                 arr[cell] = INT_MIN; // Propagate error
-            }
             else
-            {
-                arr[cell] = f.op_info1; // Assign valid value
-            }
+                arr[cell] = f.op_info1; // Direct assignment
         }
-
-        else if (f.op_type >= 1 && f.op_type <= 4) // Cell and constant case
+        else if (f.op_type >= 1 && f.op_type <= 4) // CELL op CONSTANT case
         {
-            int v1 = arr[f.op_info1]; 
-            int v2 = f.op_info2;      
-
+            int v1 = arr[f.op_info1];  // referenced cell value
+            int v2 = f.op_info2;       // constant value
             if (v1 == INT_MIN)
             {
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
-
-            
-            char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-'
-                                           : (f.op_type == 3)   ? '*'
-                                                                : '/';
-
-            
+            char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-' :
+                      (f.op_type == 3) ? '*' : '/';
             if (op == '/' && v2 == 0)
             {
                 printf("Error: Division by zero in cell %d\n", cell);
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
-
-            arr[cell] = arithmetic_eval2(v1, v2, op); // Perform operation
+            arr[cell] = arithmetic_eval2(v1, v2, op);
         }
-
-        else if (f.op_type >= 5 && f.op_type <= 8) // Cell and cell case
+        else if (f.op_type >= 5 && f.op_type <= 8) // CELL op CELL case
         {
             int v1 = arr[f.op_info1];
             int v2 = arr[f.op_info2];
-
             if (f.op_type == 8 && v2 == 0)
             {
                 printf("Error: Division by zero in cell %d\n", cell);
-                arr[cell] = INT_MIN; // Mark this cell as ERR
+                arr[cell] = INT_MIN;
                 continue;
             }
-
             if (v1 == INT_MIN || v2 == INT_MIN)
             {
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
-
-            char op = (f.op_type == 5) ? '+' : (f.op_type == 6) ? '-'
-                                           : (f.op_type == 7)   ? '*'
-                                                                : '/';
+            char op = (f.op_type == 5) ? '+' : (f.op_type == 6) ? '-' :
+                      (f.op_type == 7) ? '*' : '/';
             arr[cell] = arithmetic_eval2(v1, v2, op);
         }
-
+        else if (f.op_type >= 16 && f.op_type <= 19) // CONSTANT op CELL case
+        {
+            int v1 = f.op_info1;         // constant value (e.g. 2)
+            int v2 = arr[f.op_info2];      // value from cell (e.g. A2)
+            if (v2 == INT_MIN)
+            {
+                arr[cell] = INT_MIN;
+                continue;
+            }
+            char op = (f.op_type == 16) ? '+' : (f.op_type == 17) ? '-' :
+                      (f.op_type == 18) ? '*' : '/';
+            if (op == '/' && v2 == 0)
+            {
+                printf("Error: Division by zero in cell %d\n", cell);
+                arr[cell] = INT_MIN;
+                continue;
+            }
+            arr[cell] = arithmetic_eval2(v1, v2, op);
+        }
         else if (f.op_type >= 9 && f.op_type <= 13) // Range operations
         {
             int startCell = f.op_info1;
             int endCell = f.op_info2;
-
             int startRow = startCell / C;
             int startCol = startCell % C;
             int endRow = endCell / C;
             int endCol = endCell % C;
-
             int sum = 0, count = 0, stdevSquared = 0;
             int minVal = INT_MAX, maxVal = INT_MIN;
-            int hasError = 0; // Track if any cell in the range has an error
-
-            for (int row = startRow; row <= endRow; row++)
+            int hasError = 0;
+            for (int row = startRow; row <= endRow; ++row)
             {
-                for (int col = startCol; col <= endCol; col++)
+                for (int col = startCol; col <= endCol; ++col)
                 {
                     int idx = row * C + col;
                     int val = arr[idx];
-
                     if (val == INT_MIN)
                     {
                         hasError = 1;
                         break;
                     }
-
                     sum += val;
                     count++;
                     if (val < minVal)
@@ -657,23 +837,20 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
                 if (hasError)
                     break;
             }
-
             if (hasError)
             {
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
-
             double mean = (double)sum / count;
-            for (int row = startRow; row <= endRow; row++)
+            for (int row = startRow; row <= endRow; ++row)
             {
-                for (int col = startCol; col <= endCol; col++)
+                for (int col = startCol; col <= endCol; ++col)
                 {
                     int idx = row * C + col;
                     stdevSquared += (arr[idx] - mean) * (arr[idx] - mean);
                 }
             }
-
             if (f.op_type == 9)
                 arr[cell] = minVal;
             else if (f.op_type == 10)
@@ -685,31 +862,22 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
             else if (f.op_type == 13)
                 arr[cell] = sqrt(stdevSquared / count);
         }
-
-        else if (f.op_type == 14) // Handle SLEEP operation
+        else if (f.op_type == 14) // SLEEP(CONSTANT)
         {
             int sleep_value;
             if (f.op_info1 == cell) // SLEEP(CONSTANT)
-            {
-                sleep_value = f.op_info2; 
-            }
+                sleep_value = f.op_info2;
             else // SLEEP(CELL)
-            {
-                sleep_value = arr[f.op_info1]; // Referenced cell
-            }
-
-            if (sleep_value <= 0 || sleep_value == INT_MIN) // invalid value
+                sleep_value = arr[f.op_info1];
+            if (sleep_value <= 0 || sleep_value == INT_MIN)
             {
                 printf("Error: Invalid sleep value in cell %d\n", cell);
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
-
-            sleep(sleep_value);      //perform sleep operation
-            arr[cell] = sleep_value; //update the cell value
+            sleep(sleep_value);
+            arr[cell] = sleep_value;
         }
-
     }
-
     free(sortedCells);
 }

@@ -371,14 +371,9 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 
     if (*hasCycle)
     {
-        // If a cycle is detected, clean up and return NULL
-        free(visited);
-        free(recStack);
-        free(stack);
         return NULL;
     }
 
-    // No need to reverse the stack since we want the starting cell processed first
     int *result = (int *)malloc(stackSize * sizeof(int));
     if (!result)
     {
@@ -390,7 +385,7 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 
     for (int i = 0; i < stackSize; i++)
     {
-        result[i] = stack[stackSize - 1 - i]; // Changed this line
+        result[i] = stack[stackSize - 1 - i]; 
     }
 
     *size = stackSize;
@@ -408,8 +403,11 @@ void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int 
         return;
 
     int dependentCell = root->cell;
+    printf("Traversing dependent cell: %d\n", dependentCell);
+
     if (!visited[dependentCell])
     {
+        printf("Cell %d not visited, marking visited and adding to recStack\n", dependentCell);
         visited[dependentCell] = 1;
         recStack[dependentCell] = 1;
 
@@ -417,6 +415,7 @@ void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int 
         Cell *deps = graph->adjLists_head[dependentCell];
         if (deps)
         {
+            printf("Processing dependencies of cell %d\n", dependentCell);
             traverseAVLTree(deps, graph, visited, recStack, stack, stackSize, hasCycle);
         }
 
@@ -425,40 +424,55 @@ void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int 
         traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
 
         // Add to stack only after all dependencies are processed
+        printf("Adding cell %d to stack and removing from recStack\n", dependentCell);
         stack[(*stackSize)++] = dependentCell;
         recStack[dependentCell] = 0;
     }
     else if (recStack[dependentCell])
     {
+        printf("CYCLE DETECTED: Cell %d already in recStack\n", dependentCell);
         *hasCycle = 1;
         return;
     }
+    else
+    {
+        printf("Cell %d already visited but not in recStack\n", dependentCell);
+    }
 }
 
-// Main DFS function that starts from a given cell and traverses its AVL tree of dependencies
 void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
 {
     if (*hasCycle)
         return;
 
+    printf("Starting DFS from cell: %d\n", cell);
+
     if (!visited[cell])
     {
+        printf("Cell %d not visited, marking visited and adding to recStack\n", cell);
         visited[cell] = 1;
         recStack[cell] = 1;
 
         // Process dependencies through AVL tree
         if (graph->adjLists_head[cell])
         {
+            printf("Processing dependencies of starting cell %d\n", cell);
             traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
         }
 
         // Add the starting cell to stack after its dependencies
+        printf("Adding starting cell %d to stack and removing from recStack\n", cell);
         stack[(*stackSize)++] = cell;
         recStack[cell] = 0;
     }
     else if (recStack[cell])
     {
+        printf("CYCLE DETECTED: Starting cell %d already in recStack\n", cell);
         *hasCycle = 1;
+    }
+    else
+    {
+        printf("Starting cell %d already visited but not in recStack\n", cell);
     }
 }
 void Recalc(Graph *graph, int C, int *arr, int startCell)
@@ -467,6 +481,8 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
     for (int i = 0; i < size; i++) {
         printf("%d ", sortedCells[i]);
+        printCellDependencies(graph, sortedCells[i]);
+        printf("\n");
     }
     printf("\n");
     if (hasCycle)

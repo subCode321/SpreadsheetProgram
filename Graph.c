@@ -40,6 +40,25 @@ int arithmetic_eval2(int v1, int v2, char op){
     }
 }
 
+/*
+FORMULA                         OPTYPE
+CELL=CONSTANT                       0
+CELL=CELL+CONSTANT                  1
+CELL=CELL-CONSTANT                  2
+CELL=CELL*CONSTANT                  3
+CELL=CELL/CONSTANT                  4
+CELL=CELL+CELL                      5
+CELL=CELL-CELL                      6
+CELL=CELL*CELL                      7
+CELL=CELL/CELL                      8
+CELL=MIN(RANGE)                     9
+CELL=MAX(RANGE)                     10
+CELL=AVG(RANGE)                     11
+CELL=SUM(RANGE)                     12
+CELL=STDEV(RANGE)                   13
+CELL=SLEEP(CONSTANT)                14
+CELL=SLEEP(CELL)                    15
+*/
 
 
 
@@ -487,6 +506,28 @@ void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *s
         printf("Starting cell %d already visited but not in recStack\n", cell);
     }
 }
+
+/*
+FORMULA                         OPTYPE
+CELL=CONSTANT                       0
+CELL=CELL+CONSTANT                  1
+CELL=CELL-CONSTANT                  2
+CELL=CELL*CONSTANT                  3
+CELL=CELL/CONSTANT                  4
+CELL=CELL+CELL                      5
+CELL=CELL-CELL                      6
+CELL=CELL*CELL                      7
+CELL=CELL/CELL                      8
+CELL=MIN(RANGE)                     9
+CELL=MAX(RANGE)                     10
+CELL=AVG(RANGE)                     11
+CELL=SUM(RANGE)                     12
+CELL=STDEV(RANGE)                   13
+CELL=SLEEP(CONSTANT)                14
+CELL=SLEEP(CELL)                    15
+*/
+
+
 void Recalc(Graph *graph, int C, int *arr, int startCell)
 {
     int size, hasCycle;

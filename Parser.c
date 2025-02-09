@@ -221,7 +221,7 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *
         return;
     }
 
-    if (formulaArray[first_cell].op_type != -1)
+    if (formulaArray[first_cell].op_type > 0)
     {
         Deleteedge(graph, first_cell, C);
     }
@@ -246,29 +246,35 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *
             if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'T' && a[pos_equalto + 3] == 'D' && a[pos_equalto + 4] == 'E' && a[pos_equalto + 5] == 'V')
             {
                 stdev_func(a,C,R,pos_equalto,pos_end,arr,graph);
+                Recalc(graph,C,arr,first_cell);
             }
             else if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'L' && a[pos_equalto + 3] == 'E' && a[pos_equalto + 4] == 'E' && a[pos_equalto + 5] == 'P')
             {
                 sleep_func(a,C,R,pos_equalto,pos_end,arr,graph);
+                Recalc(graph, C, arr, first_cell);
             }
         }
         else if (idx_open - pos_equalto-1 == 3)
         {
             if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'I' && a[pos_equalto + 3] == 'N')
             {
-                min_func(a, C, R, pos_equalto, pos_end, arr,graph); 
+                min_func(a, C, R, pos_equalto, pos_end, arr,graph);
+                Recalc(graph, C, arr, first_cell);
             }
             else if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'A' && a[pos_equalto + 3] == 'X')
             {
                 maxfunc(a, C, R, pos_equalto, pos_end,arr,graph);
+                Recalc(graph, C, arr, first_cell);
             }
             else if (a[pos_equalto + 1] == 'A' && a[pos_equalto + 2] == 'V' && a[pos_equalto + 3] == 'G')
             {
                 avg_func(a, C, R, pos_equalto, pos_end,arr,graph);
+                Recalc(graph, C, arr, first_cell);
             }
             else if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'U' && a[pos_equalto + 3] == 'M')
             {
-                sum_func(a, C, R, pos_equalto, pos_end,arr,graph);
+                sum_func(a, C, R, pos_equalto, pos_end, arr, graph);
+                Recalc(graph, C, arr, first_cell);
             }
         }
         else

@@ -64,7 +64,7 @@ typedef struct Graph
     struct Cell **adjLists_head;
 } Graph;
 
-Formula formulaArray[NUM_CELLS] = {[0 ... NUM_CELLS - 1] = {.op_type = -1, .op_info1 = 0, .op_info2 = 0}};
+Formula formulaArray[NUM_CELLS];
 
 void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type){
     Formula newFormula;

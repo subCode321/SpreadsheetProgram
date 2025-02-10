@@ -5,7 +5,6 @@
 #include <unistd.h> // For sleep function
 #include <limits.h>
 
-
 #define NUM_CELLS 18259722
 
 int min2(int a, int b)
@@ -365,149 +364,6 @@ Cell *Deletecell(int cell1, Cell *x)
     return x;
 }
 
-void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle);
-
-int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
-{
-    *hasCycle = 0;
-    *size = 0;
-
-    int *visited = (int *)calloc(NUM_CELLS, sizeof(int));
-    int *recStack = (int *)calloc(NUM_CELLS, sizeof(int)); // Recursion stack for cycle detection
-    int *stack = (int *)malloc(NUM_CELLS * sizeof(int));
-
-    if (!visited || !recStack || !stack)
-    {
-        free(visited);
-        free(recStack);
-        free(stack);
-        return NULL;
-    }
-
-    int stackSize = 0;
-
-    // Start DFS from the modified cell and traverse its AVL dependency tree
-    dfsCollectCells(startCell, graph, visited, recStack, stack, &stackSize, hasCycle);
-
-    if (*hasCycle)
-    {
-        return NULL;
-    }
-
-    int *result = (int *)malloc(stackSize * sizeof(int));
-    if (!result)
-    {
-        free(visited);
-        free(recStack);
-        free(stack);
-        return NULL;
-    }
-
-    for (int i = 0; i < stackSize; i++)
-    {
-        result[i] = stack[stackSize - 1 - i]; 
-    }
-
-    *size = stackSize;
-
-    free(visited);
-    free(recStack);
-    free(stack);
-
-    return result;
-}
-
-void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
-{
-    if (!root || *hasCycle)
-        return;
-
-    int dependentCell = root->cell;
-
-    // Process left and right subtrees first
-    traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
-    traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
-
-    if (!visited[dependentCell])
-    {
-        visited[dependentCell] = 1;
-        recStack[dependentCell] = 1;
-
-        // Process dependencies through the adjacency list
-        Cell *deps = graph->adjLists_head[dependentCell];
-        if (deps)
-        {
-            traverseAVLTree(deps, graph, visited, recStack, stack, stackSize, hasCycle);
-        }
-
-        // Only add to stack and remove from recStack if we haven't detected a cycle
-        if (!*hasCycle)
-        {
-            stack[(*stackSize)++] = dependentCell;
-            recStack[dependentCell] = 0;
-        }
-    }
-    else if (recStack[dependentCell])
-    {
-        // Check if this is actually forming a cycle
-        // We need to verify if this cell is part of a genuine dependency cycle
-        Formula f = formulaArray[dependentCell];
-        int isCycle = 0;
-
-        // Check if this cell depends on any cells currently in the recStack
-        if (f.op_type >= 1 && f.op_type <= 4)
-        {
-            if (recStack[f.op_info1])
-                isCycle = 1;
-        }
-        else if (f.op_type >= 5 && f.op_type <= 8)
-        {
-            if (recStack[f.op_info1] || recStack[f.op_info2])
-                isCycle = 1;
-        }
-
-        if (isCycle)
-        {
-            *hasCycle = 1;
-        }
-    }
-}
-void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
-{
-    if (*hasCycle)
-        return;
-
-    printf("Starting DFS from cell: %d\n", cell);
-
-    if (!visited[cell])
-    {
-        printf("Cell %d not visited, marking visited and adding to recStack\n", cell);
-        visited[cell] = 1;
-        recStack[cell] = 1;
-
-        // Process dependencies through AVL tree
-        if (graph->adjLists_head[cell])
-        {
-            printf("Processing dependencies of starting cell %d\n", cell);
-            traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
-        }
-
-        // Add the starting cell to stack after its dependencies
-        printf("Adding starting cell %d to stack and removing from recStack\n", cell);
-        stack[(*stackSize)++] = cell;
-        recStack[cell] = 0;
-    }
-    else if (recStack[cell])
-    {
-        printf("CYCLE DETECTED: Starting cell %d already in recStack\n", cell);
-        *hasCycle = 1;
-    }
-    else
-    {
-        printf("Starting cell %d already visited but not in recStack\n", cell);
-    }
-}
-
 /*
 FORMULA                         OPTYPE
 CELL=CONSTANT                       0
@@ -527,202 +383,211 @@ CELL=STDEV(RANGE)                   13
 CELL=SLEEP(CONSTANT)                14
 CELL=SLEEP(CELL)                    15
 */
+typedef struct QueueNode
+{
+    int cell;
+    struct QueueNode *next;
+} QueueNode;
 
+typedef struct Queue
+{
+    QueueNode *front, *rear;
+} Queue;
 
-// void Recalc(Graph *graph, int C, int *arr, int startCell)
-// {
-//     int size, hasCycle;
-//     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
-//     for (int i = 0; i < size; i++) {
-//         printf("%d ", sortedCells[i]);
-//         printCellDependencies(graph, sortedCells[i]);
-//         printf("\n");
-//     }
-//     printf("\n");
-//     if (hasCycle)
-//     {
-//         printf("Error: Circular dependency detected. Command rejected.\n");
-//         free(sortedCells);
-//         return;
-//     }
+Queue *createQueue()
+{
+    Queue *q = (Queue *)malloc(sizeof(Queue));
+    q->front = q->rear = NULL;
+    return q;
+}
 
-//     // Reset all dependent cells before recalculation
-//     for (int i = 0; i < size; i++)
-//     {
-//         arr[sortedCells[i]] = 0;
-//     }
+void enqueue(Queue *q, int cell)
+{
+    QueueNode *newNode = (QueueNode *)malloc(sizeof(QueueNode));
+    newNode->cell = cell;
+    newNode->next = NULL;
 
-//     for (int i = 0; i < size; i++)
-//     {
-//         int cell = sortedCells[i];
-//         Formula f = formulaArray[cell];
+    if (q->rear == NULL)
+    {
+        q->front = q->rear = newNode;
+        return;
+    }
 
-//         if (f.op_type == 0)
-//         {
-//             if (f.op_info1 == INT_MIN)
-//             {
-//                 arr[cell] = INT_MIN; // Propagate error
-//             }
-//             else
-//             {
-//                 arr[cell] = f.op_info1; // Assign valid value
-//             }
-//         }
+    q->rear->next = newNode;
+    q->rear = newNode;
+}
 
-//         else if (f.op_type >= 1 && f.op_type <= 4) // Cell and constant case
-//         {
-//             int v1 = arr[f.op_info1]; 
-//             int v2 = f.op_info2;      
+int dequeue(Queue *q)
+{
+    if (q->front == NULL)
+        return -1;
 
-//             if (v1 == INT_MIN)
-//             {
-//                 arr[cell] = INT_MIN; // Propagate error
-//                 continue;
-//             }
+    QueueNode *temp = q->front;
+    int cell = temp->cell;
 
-            
-//             char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-'
-//                                            : (f.op_type == 3)   ? '*'
-//                                                                 : '/';
+    q->front = q->front->next;
+    if (q->front == NULL)
+        q->rear = NULL;
 
-            
-//             if (op == '/' && v2 == 0)
-//             {
-//                 printf("Error: Division by zero in cell %d\n", cell);
-//                 arr[cell] = INT_MIN; // Propagate error
-//                 continue;
-//             }
+    free(temp);
+    return cell;
+}
 
-//             arr[cell] = arithmetic_eval2(v1, v2, op); // Perform operation
-//         }
+void getNodesFromAVL(Cell *root, int *nodes, int *count)
+{
+    if (root == NULL)
+        return;
 
-//         else if (f.op_type >= 5 && f.op_type <= 8) // Cell and cell case
-//         {
-//             int v1 = arr[f.op_info1];
-//             int v2 = arr[f.op_info2];
+    getNodesFromAVL(root->left, nodes, count);
+    nodes[(*count)++] = root->cell;
+    printf("    AVL traversal: added node %d at position %d\n", root->cell, *count - 1);
+    getNodesFromAVL(root->right, nodes, count);
+}
 
-//             if (f.op_type == 8 && v2 == 0)
-//             {
-//                 printf("Error: Division by zero in cell %d\n", cell);
-//                 arr[cell] = INT_MIN; // Mark this cell as ERR
-//                 continue;
-//             }
+int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
+{
+    printf("\n=== Starting topoSort from cell %d ===\n", startCell);
+    *size = 0;
+    *hasCycle = 0;
 
-//             if (v1 == INT_MIN || v2 == INT_MIN)
-//             {
-//                 arr[cell] = INT_MIN; // Propagate error
-//                 continue;
-//             }
+    // Create arrays for storing result and tracking visited/in-degree
+    int *result = (int *)malloc(NUM_CELLS * sizeof(int));
+    int *inDegree = (int *)calloc(NUM_CELLS, sizeof(int));
+    int *reachable = (int *)calloc(NUM_CELLS, sizeof(int));
+    Queue *q = createQueue();
 
-//             char op = (f.op_type == 5) ? '+' : (f.op_type == 6) ? '-'
-//                                            : (f.op_type == 7)   ? '*'
-//                                                                 : '/';
-//             arr[cell] = arithmetic_eval2(v1, v2, op);
-//         }
+    printf("\n--- Starting BFS Discovery Phase ---\n");
+    // First discover all reachable nodes using BFS and calculate their in-degrees
+    Queue *discovery = createQueue();
+    enqueue(discovery, startCell);
+    reachable[startCell] = 1;
+    printf("Added start cell %d to discovery queue\n", startCell);
 
-//         else if (f.op_type >= 9 && f.op_type <= 13) // Range operations
-//         {
-//             int startCell = f.op_info1;
-//             int endCell = f.op_info2;
+    while (discovery->front != NULL)
+    {
+        int current = dequeue(discovery);
+        printf("\nProcessing node %d in discovery phase\n", current);
 
-//             int startRow = startCell / C;
-//             int startCol = startCell % C;
-//             int endRow = endCell / C;
-//             int endCol = endCell % C;
+        if (graph->adjLists_head[current] != NULL)
+        {
+            printf("  Node %d has adjacency list, processing dependencies...\n", current);
+            int *nodes = (int *)malloc(NUM_CELLS * sizeof(int));
+            int count = 0;
+            getNodesFromAVL(graph->adjLists_head[current], nodes, &count);
 
-//             int sum = 0, count = 0, stdevSquared = 0;
-//             int minVal = INT_MAX, maxVal = INT_MIN;
-//             int hasError = 0; // Track if any cell in the range has an error
+            for (int i = 0; i < count; i++)
+            {
+                int dependent = nodes[i];
+                inDegree[dependent]++;
+                printf("  Increased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
 
-//             for (int row = startRow; row <= endRow; row++)
-//             {
-//                 for (int col = startCol; col <= endCol; col++)
-//                 {
-//                     int idx = row * C + col;
-//                     int val = arr[idx];
+                if (!reachable[dependent])
+                {
+                    reachable[dependent] = 1;
+                    enqueue(discovery, dependent);
+                    printf("  Marked node %d as reachable and added to discovery queue\n", dependent);
+                }
+            }
+            free(nodes);
+        }
+        else
+        {
+            printf("  Node %d has no dependencies\n", current);
+        }
+    }
+    free(discovery);
 
-//                     if (val == INT_MIN)
-//                     {
-//                         hasError = 1;
-//                         break;
-//                     }
+    printf("\n--- Starting Topological Sort Phase ---\n");
+    printf("Adding start cell %d to processing queue\n", startCell);
+    if (inDegree[startCell] > 0) {
+        printf("CYCLE DETECTED: Node %d still has positive in-degree %d\n", startCell, inDegree[startCell]);
+        *hasCycle = 1;
+        free(result);
+        free(inDegree);
+        free(reachable);
+        while (q->front != NULL)
+        {
+            dequeue(q);
+        }
+        free(q);
+        return NULL;
+    }
+    enqueue(q, startCell);
 
-//                     sum += val;
-//                     count++;
-//                     if (val < minVal)
-//                         minVal = val;
-//                     if (val > maxVal)
-//                         maxVal = val;
-//                 }
-//                 if (hasError)
-//                     break;
-//             }
+    while (q->front != NULL)
+    {
+        int current = dequeue(q);
+        result[(*size)++] = current;
+        printf("\nProcessing node %d in topo sort (position %d in result)\n", current, *size - 1);
 
-//             if (hasError)
-//             {
-//                 arr[cell] = INT_MIN; // Propagate error
-//                 continue;
-//             }
+        if (graph->adjLists_head[current] != NULL)
+        {
+            printf("  Node %d has adjacency list, processing dependencies...\n", current);
+            int *nodes = (int *)malloc(NUM_CELLS * sizeof(int));
+            int count = 0;
+            getNodesFromAVL(graph->adjLists_head[current], nodes, &count);
 
-//             double mean = (double)sum / count;
-//             for (int row = startRow; row <= endRow; row++)
-//             {
-//                 for (int col = startCol; col <= endCol; col++)
-//                 {
-//                     int idx = row * C + col;
-//                     stdevSquared += (arr[idx] - mean) * (arr[idx] - mean);
-//                 }
-//             }
+            for (int i = 0; i < count; i++)
+            {
+                int dependent = nodes[i];
+                inDegree[dependent]--;
+                printf("  Decreased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
 
-//             if (f.op_type == 9)
-//                 arr[cell] = minVal;
-//             else if (f.op_type == 10)
-//                 arr[cell] = maxVal;
-//             else if (f.op_type == 11)
-//                 arr[cell] = sum / count;
-//             else if (f.op_type == 12)
-//                 arr[cell] = sum;
-//             else if (f.op_type == 13)
-//                 arr[cell] = sqrt(stdevSquared / count);
-//         }
+                if (inDegree[dependent] == 0)
+                {
+                    enqueue(q, dependent);
+                    printf("  Node %d has in-degree 0, added to processing queue\n", dependent);
+                }
+            }
+            free(nodes);
+        }
+        else
+        {
+            printf("  Node %d has no dependencies\n", current);
+        }
+    }
 
-//         else if (f.op_type == 14) // Handle SLEEP operation
-//         {
-//             int sleep_value;
-//             if (f.op_info1 == cell) // SLEEP(CONSTANT)
-//             {
-//                 sleep_value = f.op_info2; 
-//             }
-//             else // SLEEP(CELL)
-//             {
-//                 sleep_value = arr[f.op_info1]; // Referenced cell
-//             }
+    printf("\n--- Checking for Cycles ---\n");
+    for (int i = 0; i < NUM_CELLS; i++)
+    {
+        if (reachable[i])
+        {
+            printf("Node %d is reachable with final in-degree %d\n", i, inDegree[i]);
+            if (inDegree[i] > 0)
+            {
+                printf("CYCLE DETECTED: Node %d still has positive in-degree %d\n", i, inDegree[i]);
+                *hasCycle = 1;
+                free(result);
+                free(inDegree);
+                free(reachable);
+                while (q->front != NULL)
+                {
+                    dequeue(q);
+                }
+                free(q);
+                return NULL;
+            }
+        }
+    }
 
-//             if (sleep_value <= 0 || sleep_value == INT_MIN) // invalid value
-//             {
-//                 printf("Error: Invalid sleep value in cell %d\n", cell);
-//                 arr[cell] = INT_MIN; // Propagate error
-//                 continue;
-//             }
+    printf("\n--- Topological Sort Completed Successfully ---\n");
+    printf("Final order: ");
+    for (int i = 0; i < *size; i++)
+    {
+        printf("%d ", result[i]);
+    }
+    printf("\n");
 
-//             sleep(sleep_value);      //perform sleep operation
-//             arr[cell] = sleep_value; //update the cell value
-//         }
+    free(inDegree);
+    free(reachable);
+    free(q);
+    return result;
+}
 
-//     }
-
-//     free(sortedCells);
-// }
 void Recalc(Graph *graph, int C, int *arr, int startCell)
 {
     int size, hasCycle;
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
-    for (int i = 0; i < size; i++) {
-        printf("%d ", sortedCells[i]);
-        printCellDependencies(graph, sortedCells[i]);
-        printf("\n");
-    }
-    printf("\n");
     if (hasCycle)
     {
         printf("Error: Circular dependency detected. Command rejected.\n");
@@ -730,7 +595,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
         return;
     }
 
-    // Reset all dependent cells before recalculation
     for (int i = 0; i < size; i++)
     {
         arr[sortedCells[i]] = 0;
@@ -744,89 +608,93 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
         if (f.op_type == 0)
         {
             if (f.op_info1 == INT_MIN)
+            {
                 arr[cell] = INT_MIN; // Propagate error
+            }
             else
-                arr[cell] = f.op_info1; // Direct assignment
+            {
+                arr[cell] = f.op_info1; // Assign valid value
+            }
         }
-        else if (f.op_type >= 1 && f.op_type <= 4) // CELL op CONSTANT case
+
+        else if (f.op_type >= 1 && f.op_type <= 4) // Cell and constant case
         {
-            int v1 = arr[f.op_info1];  // referenced cell value
-            int v2 = f.op_info2;       // constant value
+            int v1 = arr[f.op_info1]; 
+            int v2 = f.op_info2;      
+
             if (v1 == INT_MIN)
             {
-                arr[cell] = INT_MIN;
+                arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
-            char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-' :
-                      (f.op_type == 3) ? '*' : '/';
+
+            
+            char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-'
+                                           : (f.op_type == 3)   ? '*'
+                                                                : '/';
+
+            
             if (op == '/' && v2 == 0)
             {
                 printf("Error: Division by zero in cell %d\n", cell);
-                arr[cell] = INT_MIN;
+                arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
-            arr[cell] = arithmetic_eval2(v1, v2, op);
+
+            arr[cell] = arithmetic_eval2(v1, v2, op); // Perform operation
         }
-        else if (f.op_type >= 5 && f.op_type <= 8) // CELL op CELL case
+
+        else if (f.op_type >= 5 && f.op_type <= 8) // Cell and cell case
         {
             int v1 = arr[f.op_info1];
             int v2 = arr[f.op_info2];
+
             if (f.op_type == 8 && v2 == 0)
             {
                 printf("Error: Division by zero in cell %d\n", cell);
-                arr[cell] = INT_MIN;
+                arr[cell] = INT_MIN; // Mark this cell as ERR
                 continue;
             }
+
             if (v1 == INT_MIN || v2 == INT_MIN)
             {
-                arr[cell] = INT_MIN;
+                arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
-            char op = (f.op_type == 5) ? '+' : (f.op_type == 6) ? '-' :
-                      (f.op_type == 7) ? '*' : '/';
+
+            char op = (f.op_type == 5) ? '+' : (f.op_type == 6) ? '-'
+                                           : (f.op_type == 7)   ? '*'
+                                                                : '/';
             arr[cell] = arithmetic_eval2(v1, v2, op);
         }
-        else if (f.op_type >= 16 && f.op_type <= 19) // CONSTANT op CELL case
-        {
-            int v1 = f.op_info1;         // constant value (e.g. 2)
-            int v2 = arr[f.op_info2];      // value from cell (e.g. A2)
-            if (v2 == INT_MIN)
-            {
-                arr[cell] = INT_MIN;
-                continue;
-            }
-            char op = (f.op_type == 16) ? '+' : (f.op_type == 17) ? '-' :
-                      (f.op_type == 18) ? '*' : '/';
-            if (op == '/' && v2 == 0)
-            {
-                printf("Error: Division by zero in cell %d\n", cell);
-                arr[cell] = INT_MIN;
-                continue;
-            }
-            arr[cell] = arithmetic_eval2(v1, v2, op);
-        }
+
         else if (f.op_type >= 9 && f.op_type <= 13) // Range operations
         {
             int startCell = f.op_info1;
             int endCell = f.op_info2;
+
             int startRow = startCell / C;
             int startCol = startCell % C;
             int endRow = endCell / C;
             int endCol = endCell % C;
+
             int sum = 0, count = 0, stdevSquared = 0;
             int minVal = INT_MAX, maxVal = INT_MIN;
-            int hasError = 0;
-            for (int row = startRow; row <= endRow; ++row)
+            int hasError = 0; // Track if any cell in the range has an error
+
+            for (int row = startRow; row <= endRow; row++)
             {
-                for (int col = startCol; col <= endCol; ++col)
+                for (int col = startCol; col <= endCol; col++)
                 {
                     int idx = row * C + col;
                     int val = arr[idx];
+
                     if (val == INT_MIN)
                     {
                         hasError = 1;
                         break;
                     }
+
                     sum += val;
                     count++;
                     if (val < minVal)
@@ -837,20 +705,23 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
                 if (hasError)
                     break;
             }
+
             if (hasError)
             {
-                arr[cell] = INT_MIN;
+                arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
+
             double mean = (double)sum / count;
-            for (int row = startRow; row <= endRow; ++row)
+            for (int row = startRow; row <= endRow; row++)
             {
-                for (int col = startCol; col <= endCol; ++col)
+                for (int col = startCol; col <= endCol; col++)
                 {
                     int idx = row * C + col;
                     stdevSquared += (arr[idx] - mean) * (arr[idx] - mean);
                 }
             }
+
             if (f.op_type == 9)
                 arr[cell] = minVal;
             else if (f.op_type == 10)
@@ -862,22 +733,31 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
             else if (f.op_type == 13)
                 arr[cell] = sqrt(stdevSquared / count);
         }
-        else if (f.op_type == 14) // SLEEP(CONSTANT)
+
+        else if (f.op_type == 14) // Handle SLEEP operation
         {
             int sleep_value;
             if (f.op_info1 == cell) // SLEEP(CONSTANT)
-                sleep_value = f.op_info2;
+            {
+                sleep_value = f.op_info2; 
+            }
             else // SLEEP(CELL)
-                sleep_value = arr[f.op_info1];
-            if (sleep_value <= 0 || sleep_value == INT_MIN)
+            {
+                sleep_value = arr[f.op_info1]; // Referenced cell
+            }
+
+            if (sleep_value <= 0 || sleep_value == INT_MIN) // invalid value
             {
                 printf("Error: Invalid sleep value in cell %d\n", cell);
-                arr[cell] = INT_MIN;
+                arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
-            sleep(sleep_value);
-            arr[cell] = sleep_value;
+
+            sleep(sleep_value);      //perform sleep operation
+            arr[cell] = sleep_value; //update the cell value
         }
+
     }
+
     free(sortedCells);
 }

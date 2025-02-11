@@ -5,7 +5,6 @@
 #include <unistd.h> // For sleep function
 #include <limits.h>
 
-
 #define NUM_CELLS 18259722
 
 int min2(int a, int b)
@@ -38,6 +37,7 @@ int arithmetic_eval2(int v1, int v2, char op){
     else if (op == '/'){
         return v1 / v2;
     }
+    return INT_MIN;
 }
 
 /*
@@ -364,149 +364,6 @@ Cell *Deletecell(int cell1, Cell *x)
     return x;
 }
 
-void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle);
-
-int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
-{
-    *hasCycle = 0;
-    *size = 0;
-
-    int *visited = (int *)calloc(NUM_CELLS, sizeof(int));
-    int *recStack = (int *)calloc(NUM_CELLS, sizeof(int)); // Recursion stack for cycle detection
-    int *stack = (int *)malloc(NUM_CELLS * sizeof(int));
-
-    if (!visited || !recStack || !stack)
-    {
-        free(visited);
-        free(recStack);
-        free(stack);
-        return NULL;
-    }
-
-    int stackSize = 0;
-
-    // Start DFS from the modified cell and traverse its AVL dependency tree
-    dfsCollectCells(startCell, graph, visited, recStack, stack, &stackSize, hasCycle);
-
-    if (*hasCycle)
-    {
-        return NULL;
-    }
-
-    int *result = (int *)malloc(stackSize * sizeof(int));
-    if (!result)
-    {
-        free(visited);
-        free(recStack);
-        free(stack);
-        return NULL;
-    }
-
-    for (int i = 0; i < stackSize; i++)
-    {
-        result[i] = stack[stackSize - 1 - i]; 
-    }
-
-    *size = stackSize;
-
-    free(visited);
-    free(recStack);
-    free(stack);
-
-    return result;
-}
-
-void traverseAVLTree(Cell *root, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
-{
-    if (!root || *hasCycle)
-        return;
-
-    int dependentCell = root->cell;
-
-    // Process left and right subtrees first
-    traverseAVLTree(root->left, graph, visited, recStack, stack, stackSize, hasCycle);
-    traverseAVLTree(root->right, graph, visited, recStack, stack, stackSize, hasCycle);
-
-    if (!visited[dependentCell])
-    {
-        visited[dependentCell] = 1;
-        recStack[dependentCell] = 1;
-
-        // Process dependencies through the adjacency list
-        Cell *deps = graph->adjLists_head[dependentCell];
-        if (deps)
-        {
-            traverseAVLTree(deps, graph, visited, recStack, stack, stackSize, hasCycle);
-        }
-
-        // Only add to stack and remove from recStack if we haven't detected a cycle
-        if (!*hasCycle)
-        {
-            stack[(*stackSize)++] = dependentCell;
-            recStack[dependentCell] = 0;
-        }
-    }
-    else if (recStack[dependentCell])
-    {
-        // Check if this is actually forming a cycle
-        // We need to verify if this cell is part of a genuine dependency cycle
-        Formula f = formulaArray[dependentCell];
-        int isCycle = 0;
-
-        // Check if this cell depends on any cells currently in the recStack
-        if (f.op_type >= 1 && f.op_type <= 4)
-        {
-            if (recStack[f.op_info1])
-                isCycle = 1;
-        }
-        else if (f.op_type >= 5 && f.op_type <= 8)
-        {
-            if (recStack[f.op_info1] || recStack[f.op_info2])
-                isCycle = 1;
-        }
-
-        if (isCycle)
-        {
-            *hasCycle = 1;
-        }
-    }
-}
-void dfsCollectCells(int cell, Graph *graph, int *visited, int *recStack, int *stack, int *stackSize, int *hasCycle)
-{
-    if (*hasCycle)
-        return;
-
-    printf("Starting DFS from cell: %d\n", cell);
-
-    if (!visited[cell])
-    {
-        printf("Cell %d not visited, marking visited and adding to recStack\n", cell);
-        visited[cell] = 1;
-        recStack[cell] = 1;
-
-        // Process dependencies through AVL tree
-        if (graph->adjLists_head[cell])
-        {
-            printf("Processing dependencies of starting cell %d\n", cell);
-            traverseAVLTree(graph->adjLists_head[cell], graph, visited, recStack, stack, stackSize, hasCycle);
-        }
-
-        // Add the starting cell to stack after its dependencies
-        printf("Adding starting cell %d to stack and removing from recStack\n", cell);
-        stack[(*stackSize)++] = cell;
-        recStack[cell] = 0;
-    }
-    else if (recStack[cell])
-    {
-        printf("CYCLE DETECTED: Starting cell %d already in recStack\n", cell);
-        *hasCycle = 1;
-    }
-    else
-    {
-        printf("Starting cell %d already visited but not in recStack\n", cell);
-    }
-}
-
 /*
 FORMULA                         OPTYPE
 CELL=CONSTANT                       0
@@ -526,18 +383,211 @@ CELL=STDEV(RANGE)                   13
 CELL=SLEEP(CONSTANT)                14
 CELL=SLEEP(CELL)                    15
 */
+typedef struct QueueNode
+{
+    int cell;
+    struct QueueNode *next;
+} QueueNode;
 
+typedef struct Queue
+{
+    QueueNode *front, *rear;
+} Queue;
+
+Queue *createQueue()
+{
+    Queue *q = (Queue *)malloc(sizeof(Queue));
+    q->front = q->rear = NULL;
+    return q;
+}
+
+void enqueue(Queue *q, int cell)
+{
+    QueueNode *newNode = (QueueNode *)malloc(sizeof(QueueNode));
+    newNode->cell = cell;
+    newNode->next = NULL;
+
+    if (q->rear == NULL)
+    {
+        q->front = q->rear = newNode;
+        return;
+    }
+
+    q->rear->next = newNode;
+    q->rear = newNode;
+}
+
+int dequeue(Queue *q)
+{
+    if (q->front == NULL)
+        return -1;
+
+    QueueNode *temp = q->front;
+    int cell = temp->cell;
+
+    q->front = q->front->next;
+    if (q->front == NULL)
+        q->rear = NULL;
+
+    free(temp);
+    return cell;
+}
+
+void getNodesFromAVL(Cell *root, int *nodes, int *count)
+{
+    if (root == NULL)
+        return;
+
+    getNodesFromAVL(root->left, nodes, count);
+    nodes[(*count)++] = root->cell;
+    printf("    AVL traversal: added node %d at position %d\n", root->cell, *count - 1);
+    getNodesFromAVL(root->right, nodes, count);
+}
+
+int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
+{
+    printf("\n=== Starting topoSort from cell %d ===\n", startCell);
+    *size = 0;
+    *hasCycle = 0;
+
+    // Create arrays for storing result and tracking visited/in-degree
+    int *result = (int *)malloc(NUM_CELLS * sizeof(int));
+    int *inDegree = (int *)calloc(NUM_CELLS, sizeof(int));
+    int *reachable = (int *)calloc(NUM_CELLS, sizeof(int));
+    Queue *q = createQueue();
+
+    printf("\n--- Starting BFS Discovery Phase ---\n");
+    // First discover all reachable nodes using BFS and calculate their in-degrees
+    Queue *discovery = createQueue();
+    enqueue(discovery, startCell);
+    reachable[startCell] = 1;
+    printf("Added start cell %d to discovery queue\n", startCell);
+
+    while (discovery->front != NULL)
+    {
+        int current = dequeue(discovery);
+        printf("\nProcessing node %d in discovery phase\n", current);
+
+        if (graph->adjLists_head[current] != NULL)
+        {
+            printf("  Node %d has adjacency list, processing dependencies...\n", current);
+            int *nodes = (int *)malloc(NUM_CELLS * sizeof(int));
+            int count = 0;
+            getNodesFromAVL(graph->adjLists_head[current], nodes, &count);
+
+            for (int i = 0; i < count; i++)
+            {
+                int dependent = nodes[i];
+                inDegree[dependent]++;
+                printf("  Increased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
+
+                if (!reachable[dependent])
+                {
+                    reachable[dependent] = 1;
+                    enqueue(discovery, dependent);
+                    printf("  Marked node %d as reachable and added to discovery queue\n", dependent);
+                }
+            }
+            free(nodes);
+        }
+        else
+        {
+            printf("  Node %d has no dependencies\n", current);
+        }
+    }
+    free(discovery);
+
+    printf("\n--- Starting Topological Sort Phase ---\n");
+    printf("Adding start cell %d to processing queue\n", startCell);
+    if (inDegree[startCell] > 0) {
+        printf("CYCLE DETECTED: Node %d still has positive in-degree %d\n", startCell, inDegree[startCell]);
+        *hasCycle = 1;
+        free(result);
+        free(inDegree);
+        free(reachable);
+        while (q->front != NULL)
+        {
+            dequeue(q);
+        }
+        free(q);
+        return NULL;
+    }
+    enqueue(q, startCell);
+
+    while (q->front != NULL)
+    {
+        int current = dequeue(q);
+        result[(*size)++] = current;
+        printf("\nProcessing node %d in topo sort (position %d in result)\n", current, *size - 1);
+
+        if (graph->adjLists_head[current] != NULL)
+        {
+            printf("  Node %d has adjacency list, processing dependencies...\n", current);
+            int *nodes = (int *)malloc(NUM_CELLS * sizeof(int));
+            int count = 0;
+            getNodesFromAVL(graph->adjLists_head[current], nodes, &count);
+
+            for (int i = 0; i < count; i++)
+            {
+                int dependent = nodes[i];
+                inDegree[dependent]--;
+                printf("  Decreased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
+
+                if (inDegree[dependent] == 0)
+                {
+                    enqueue(q, dependent);
+                    printf("  Node %d has in-degree 0, added to processing queue\n", dependent);
+                }
+            }
+            free(nodes);
+        }
+        else
+        {
+            printf("  Node %d has no dependencies\n", current);
+        }
+    }
+
+    printf("\n--- Checking for Cycles ---\n");
+    for (int i = 0; i < NUM_CELLS; i++)
+    {
+        if (reachable[i])
+        {
+            printf("Node %d is reachable with final in-degree %d\n", i, inDegree[i]);
+            if (inDegree[i] > 0)
+            {
+                printf("CYCLE DETECTED: Node %d still has positive in-degree %d\n", i, inDegree[i]);
+                *hasCycle = 1;
+                free(result);
+                free(inDegree);
+                free(reachable);
+                while (q->front != NULL)
+                {
+                    dequeue(q);
+                }
+                free(q);
+                return NULL;
+            }
+        }
+    }
+
+    printf("\n--- Topological Sort Completed Successfully ---\n");
+    printf("Final order: ");
+    for (int i = 0; i < *size; i++)
+    {
+        printf("%d ", result[i]);
+    }
+    printf("\n");
+
+    free(inDegree);
+    free(reachable);
+    free(q);
+    return result;
+}
 
 void Recalc(Graph *graph, int C, int *arr, int startCell)
 {
     int size, hasCycle;
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
-    for (int i = 0; i < size; i++) {
-        printf("%d ", sortedCells[i]);
-        printCellDependencies(graph, sortedCells[i]);
-        printf("\n");
-    }
-    printf("\n");
     if (hasCycle)
     {
         printf("Error: Circular dependency detected. Command rejected.\n");
@@ -545,7 +595,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
         return;
     }
 
-    // Reset all dependent cells before recalculation
     for (int i = 0; i < size; i++)
     {
         arr[sortedCells[i]] = 0;
@@ -685,23 +734,29 @@ void Recalc(Graph *graph, int C, int *arr, int startCell)
                 arr[cell] = sqrt(stdevSquared / count);
         }
 
-        else if (f.op_type == 14) // Delay operations (SLEEP)
+        else if (f.op_type == 14) // Handle SLEEP operation
         {
-            if (arr[f.op_info1] == INT_MIN)
+            int sleep_value;
+            if (f.op_info1 == cell) // SLEEP(CONSTANT)
             {
+                sleep_value = f.op_info2; 
+            }
+            else // SLEEP(CELL)
+            {
+                sleep_value = arr[f.op_info1]; // Referenced cell
+            }
+
+            if (sleep_value <= 0 || sleep_value == INT_MIN) // invalid value
+            {
+                printf("Error: Invalid sleep value in cell %d\n", cell);
                 arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
 
-            int sleepTime = arr[f.op_info1];
-            sleep(sleepTime);
-            arr[cell] = sleepTime; // Assign the sleep value to the cell
+            sleep(sleep_value);      //perform sleep operation
+            arr[cell] = sleep_value; //update the cell value
         }
-        else
-        {
-            printf("Error: Unsupported operation type %d in cell %d\n", f.op_type, cell);
-            arr[cell] = INT_MIN; // Mark as error
-        }
+
     }
 
     free(sortedCells);

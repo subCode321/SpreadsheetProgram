@@ -146,7 +146,7 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
             }
         }
     }
-
+    old_value = arr[first_cell];
     arr[first_cell] = min_value;
 }
 
@@ -223,8 +223,7 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
             }
         }
     }
-
-    // Store the maximum value in the destination cell
+    old_value = arr[first_cell];
     arr[first_cell] = max_value;
 }
 
@@ -284,6 +283,7 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     }
 
     int avg_value = (count > 0) ? (sum / count) : 0;
+    old_value = arr[first_cell];
     arr[first_cell] = avg_value;
 }
 
@@ -342,7 +342,7 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
             sum += arr[idx];
         }
     }
-
+    old_value = arr[first_cell];
     arr[first_cell] = sum;
 }
 
@@ -418,6 +418,7 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         }
     }
     int stdev = sqrt(stdev_squared / count);
+    old_value = arr[first_cell];
     arr[first_cell] = stdev;
 }
 
@@ -475,7 +476,7 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     printf("Parsed sleep value: %d\n", sleep_value);
 
     // Add formula and execute sleep
-    AddFormula(graph, Addcell(target_cell), ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14,formulaArray);
-
+    AddFormula(graph, Addcell(target_cell), ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
+    old_value = arr[target_cell];
     arr[target_cell] = sleep_value;
 }

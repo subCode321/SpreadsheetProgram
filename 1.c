@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 
     int R = atoi(argv[1]);
     int C = atoi(argv[2]);
+    
     NUM_CELLS=R*C;
     Graph *graph = CreateGraph();
     formulaArray = malloc(NUM_CELLS * sizeof(Formula));

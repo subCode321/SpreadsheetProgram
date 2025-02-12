@@ -411,15 +411,16 @@ void getNodesFromAVL(Cell *root, int *nodes, int *count)
 
     getNodesFromAVL(root->left, nodes, count);
     nodes[(*count)++] = root->cell;
-    printf("    AVL traversal: added node %d at position %d\n", root->cell, *count - 1);
+    //printf("    AVL traversal: added node %d at position %d\n", root->cell, *count - 1);
     getNodesFromAVL(root->right, nodes, count);
 }
 
 int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 {
-    printf("\n=== Starting topoSort from cell %d ===\n", startCell);
+    //printf("\n=== Starting topoSort from cell %d ===\n", startCell);
     *size = 0;
     *hasCycle = 0;
+    int num_reachable = 0; // Track count of reachable nodes
 
     // Create arrays for storing result and tracking visited/in-degree
     int *result = (int *)malloc(NUM_CELLS * sizeof(int));
@@ -427,21 +428,22 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
     int *reachable = (int *)calloc(NUM_CELLS, sizeof(int));
     Queue *q = createQueue();
 
-    printf("\n--- Starting BFS Discovery Phase ---\n");
+    //printf("\n--- Starting BFS Discovery Phase ---\n");
     // First discover all reachable nodes using BFS and calculate their in-degrees
     Queue *discovery = createQueue();
     enqueue(discovery, startCell);
     reachable[startCell] = 1;
-    printf("Added start cell %d to discovery queue\n", startCell);
+    num_reachable = 1; // Count start node
+    //printf("Added start cell %d to discovery queue\n", startCell);
 
     while (discovery->front != NULL)
     {
         int current = dequeue(discovery);
-        printf("\nProcessing node %d in discovery phase\n", current);
+        //printf("\nProcessing node %d in discovery phase\n", current);
 
         if (graph->adjLists_head[current] != NULL)
         {
-            printf("  Node %d has adjacency list, processing dependencies...\n", current);
+            //printf("  Node %d has adjacency list, processing dependencies...\n", current);
             int *nodes = (int *)malloc(NUM_CELLS * sizeof(int));
             int count = 0;
             getNodesFromAVL(graph->adjLists_head[current], nodes, &count);
@@ -450,37 +452,34 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
             {
                 int dependent = nodes[i];
                 inDegree[dependent]++;
-                printf("  Increased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
+                //printf("  Increased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
 
                 if (!reachable[dependent])
                 {
                     reachable[dependent] = 1;
+                    num_reachable++; // Count newly discovered node
                     enqueue(discovery, dependent);
-                    printf("  Marked node %d as reachable and added to discovery queue\n", dependent);
+                    //printf("  Marked node %d as reachable and added to discovery queue\n", dependent);
                 }
             }
             free(nodes);
         }
         else
         {
-            printf("  Node %d has no dependencies\n", current);
+            //printf("  Node %d has no dependencies\n", current);
         }
     }
     free(discovery);
 
-    printf("\n--- Starting Topological Sort Phase ---\n");
-    printf("Adding start cell %d to processing queue\n", startCell);
+    //printf("\n--- Starting Topological Sort Phase ---\n");
+    //printf("Adding start cell %d to processing queue\n", startCell);
     if (inDegree[startCell] > 0)
     {
-        printf("CYCLE DETECTED: Node %d still has positive in-degree %d\n", startCell, inDegree[startCell]);
+        printf("CYCLE DETECTED: Start node has incoming edges\n");
         *hasCycle = 1;
         free(result);
         free(inDegree);
         free(reachable);
-        while (q->front != NULL)
-        {
-            dequeue(q);
-        }
         free(q);
         return NULL;
     }
@@ -490,11 +489,11 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
     {
         int current = dequeue(q);
         result[(*size)++] = current;
-        printf("\nProcessing node %d in topo sort (position %d in result)\n", current, *size - 1);
+        //printf("\nProcessing node %d in topo sort (position %d in result)\n", current, *size - 1);
 
         if (graph->adjLists_head[current] != NULL)
         {
-            printf("  Node %d has adjacency list, processing dependencies...\n", current);
+            //printf("  Node %d has adjacency list, processing dependencies...\n", current);
             int *nodes = (int *)malloc(NUM_CELLS * sizeof(int));
             int count = 0;
             getNodesFromAVL(graph->adjLists_head[current], nodes, &count);
@@ -503,59 +502,48 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
             {
                 int dependent = nodes[i];
                 inDegree[dependent]--;
-                printf("  Decreased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
+                //printf("  Decreased in-degree of node %d to %d\n", dependent, inDegree[dependent]);
 
                 if (inDegree[dependent] == 0)
                 {
                     enqueue(q, dependent);
-                    printf("  Node %d has in-degree 0, added to processing queue\n", dependent);
+                    //printf("  Node %d has in-degree 0, added to processing queue\n", dependent);
                 }
             }
             free(nodes);
         }
         else
         {
-            printf("  Node %d has no dependencies\n", current);
+            //printf("  Node %d has no dependencies\n", current);
         }
     }
 
-    printf("\n--- Checking for Cycles ---\n");
-    for (int i = 0; i < NUM_CELLS; i++)
+    /*printf("\n--- Checking for Cycles ---\n");
+    printf("Reachable nodes: %d, Nodes in topological order: %d\n", num_reachable, *size);*/
+    if (*size < num_reachable)
     {
-        if (reachable[i])
-        {
-            printf("Node %d is reachable with final in-degree %d\n", i, inDegree[i]);
-            if (inDegree[i] > 0)
-            {
-                printf("CYCLE DETECTED: Node %d still has positive in-degree %d\n", i, inDegree[i]);
-                *hasCycle = 1;
-                free(result);
-                free(inDegree);
-                free(reachable);
-                while (q->front != NULL)
-                {
-                    dequeue(q);
-                }
-                free(q);
-                return NULL;
-            }
-        }
+        //printf("CYCLE DETECTED: Not all reachable nodes could be sorted\n");
+        *hasCycle = 1;
+        free(result);
+        free(inDegree);
+        free(reachable);
+        free(q);
+        return NULL;
     }
 
-    printf("\n--- Topological Sort Completed Successfully ---\n");
+    /*printf("\n--- Topological Sort Completed Successfully ---\n");
     printf("Final order: ");
     for (int i = 0; i < *size; i++)
     {
         printf("%d ", result[i]);
     }
-    printf("\n");
+    printf("\n");*/
 
     free(inDegree);
     free(reachable);
     free(q);
     return result;
 }
-
 // void Recalc(Graph *graph, int C, int *arr, int startCell)
 // {
 
@@ -736,9 +724,9 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 
 void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
 {
-    printf("\n--- Starting Recalculation from cell %d ---\n", startCell);
+    //printf("\n--- Starting Recalculation from cell %d ---\n", startCell);
 
-    int size, hasCycle;
+    int size;
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
     if (hasCycle)
     {
@@ -747,14 +735,14 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
         return;
     }
 
-    printf("Topologically sorted cells for recalculation: ");
+    //printf("Topologically sorted cells for recalculation: ");
     for (int i = 0; i < size; i++)
         printf("%d ", sortedCells[i]);
-    printf("\n");
+    //printf("\n");
 
     for (int i = 0; i < size; i++)
     {
-        printf("Resetting cell %d to 0\n", sortedCells[i]);
+        //printf("Resetting cell %d to 0\n", sortedCells[i]);
         arr[sortedCells[i]] = 0;
     }
 
@@ -763,8 +751,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
         int cell = sortedCells[i];
         Formula f = formulaArray[cell];
 
-        printf("\nRecalculating cell %d with formula: op_type=%d, op_info1=%d, op_info2=%d\n",
-               cell, f.op_type, f.op_info1, f.op_info2);
+        //printf("\nRecalculating cell %d with formula: op_type=%d, op_info1=%d, op_info2=%d\n", cell, f.op_type, f.op_info1, f.op_info2);
 
         if (f.op_type == 0)
         {
@@ -806,7 +793,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
             }
 
             arr[cell] = arithmetic_eval2(v1, v2, op); // Perform operation
-            printf("  Result of operation for cell %d: %d\n", cell, arr[cell]);
+            //printf("  Result of operation for cell %d: %d\n", cell, arr[cell]);
         }
 
         else if (f.op_type >= 5 && f.op_type <= 8) // Cell and cell case
@@ -835,7 +822,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
                                            : (f.op_type == 7)   ? '*'
                                                                 : '/';
             arr[cell] = arithmetic_eval2(v1, v2, op);
-            printf("  Result of operation for cell %d: %d\n", cell, arr[cell]);
+            //printf("  Result of operation for cell %d: %d\n", cell, arr[cell]);
         }
 
         else if (f.op_type >= 9 && f.op_type <= 13) // Range operations
@@ -848,7 +835,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
             int endRow = endCell / C;
             int endCol = endCell % C;
 
-            printf("  Performing range operation: startCell=%d, endCell=%d\n", startCell, endCell);
+            //printf("  Performing range operation: startCell=%d, endCell=%d\n", startCell, endCell);
 
             int sum = 0, count = 0, stdevSquared = 0;
             int minVal = INT_MAX, maxVal = INT_MIN;
@@ -861,7 +848,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
                     int idx = row * C + col;
                     int val = arr[idx];
 
-                    printf("    Cell %d value in range: %d\n", idx, val);
+                    //printf("    Cell %d value in range: %d\n", idx, val);
 
                     if (val == INT_MIN)
                     {
@@ -908,7 +895,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
             else if (f.op_type == 13)
                 arr[cell] = sqrt(stdevSquared / count);
 
-            printf("  Result of range operation for cell %d: %d\n", cell, arr[cell]);
+            // printf("  Result of range operation for cell %d: %d\n", cell, arr[cell]);
         }
 
         else if (f.op_type == 14) // Handle SLEEP operation
@@ -928,13 +915,5 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
             printf("  Sleep completed for cell %d\n", cell);
         }
     }
-
-    printf("\n--- Recalculation Completed ---\n");
-    printf("Final cell values after recalculation:\n");
-    for (int i = 0; i < size; i++)
-    {
-        printf("Cell %d: %d\n", sortedCells[i], arr[sortedCells[i]]);
-    }
-
     free(sortedCells);
 }

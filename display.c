@@ -55,23 +55,23 @@ void printer(int currx, int curry, int *arr, int C, int R)
         for (int i = 0; i < min(10, C - currx); i++)
         {
             int value = arr[(currx + i) + C * (curry + j)];
-            if(value == INT_MIN)
-                {
-                    printf("%-10s", "Err"); // Print "Err" for error cells
-                }
-                else
-                {
-                    printf("%-10d", value); // Print valid cell values
-                }
+            if (value == INT_MIN)
+            {
+                printf("%-10s", "Err"); // Print "Err" for error cells
+            }
+            else
+            {
+                printf("%-10d", value); // Print valid cell values
+            }
         }
         printf("\n");
     }
 }
-void scroller(char *a, int *arr, int *currx, int *curry, int C, int R,Graph *graph)
+void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *graph)
 {
     int flag = 0;
 
-    if (a[0] == 'w' && a[1]=='\0')
+    if (a[0] == 'w' && a[1] == '\0')
     {
         if (*curry < 10)
         {

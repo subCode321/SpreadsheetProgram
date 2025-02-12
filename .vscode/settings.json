@@ -1,6 +1,8 @@
 {
     "editor.formatOnPaste": true,
     "files.associations": {
-        "__locale": "c"
+        "*.embeddedhtml": "html",
+        "__locale": "c",
+        "parser.h": "c"
     }
 }

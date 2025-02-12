@@ -52,11 +52,11 @@ int main(int argc, char *argv[])
             break;
         }
 
-        if (check == 1 && strncmp(a, "enable_output", 13) != 0){
+        if (check == 1 && strncmp(a, "enable_output", 13) != 0)
+        {
             continue;
         }
 
-      
         // else
         // {
         //     scroller(a, arr, &currx, &curry, C, R);
@@ -65,16 +65,15 @@ int main(int argc, char *argv[])
 
         int status = 1;
 
-        
-        if (a[0] == 'w' || a[0] == 'a' || (a[0] == 's'  && a[1]== '\0') || (a[0] == 'd' && a[1] == '\0'))
+        if (a[0] == 'w' || a[0] == 'a' || (a[0] == 's' && a[1] == '\0') || (a[0] == 'd' && a[1] == '\0'))
         {
-            scroller(a, arr, &currx, &curry, C, R,graph); 
+            scroller(a, arr, &currx, &curry, C, R, graph);
             continue;
         }
 
         else if (a[0] == 's' && a[1] == 'c' && a[2] == 'r' && a[3] == 'o' && a[4] == 'l' && a[5] == 'l' && a[6] == '_' && a[7] == 't' && a[8] == 'o' && a[9] == ' ')
         {
-            scroller(a, arr, &currx, &curry, C, R,graph);
+            scroller(a, arr, &currx, &curry, C, R, graph);
             continue;
         }
 
@@ -93,15 +92,14 @@ int main(int argc, char *argv[])
 
         else
         {
-            status = parser(a, C, R, arr,graph); 
+            status = parser(a, C, R, arr, graph);
         }
 
-        clock_t end = clock(); 
+        clock_t end = clock();
         double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-        printer(currx, curry, arr, C, R); 
+        printer(currx, curry, arr, C, R);
 
-        
         if (status > 0)
         {
             printf("[%.6f] (ok)  ", time_taken);
@@ -110,9 +108,6 @@ int main(int argc, char *argv[])
         {
             printf("[%.6f] (unrecognized command) ", time_taken);
         }
-        
-
-
     }
 
     free(a);

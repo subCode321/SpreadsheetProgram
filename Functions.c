@@ -106,7 +106,7 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 9,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 9,formulaArray);
 
     int min_value = arr[range_start];
 
@@ -183,7 +183,7 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 10,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 10,formulaArray);
 
     int max_value = arr[range_start];
 
@@ -259,7 +259,7 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 11,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 11,formulaArray);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -320,7 +320,7 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         return;
     }
 
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 12,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 12,formulaArray);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -379,7 +379,7 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         return;
     }
 
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 13,formulaArray);
+    AddFormula(graph,first_cell, range_start, range_end, 13,formulaArray);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -476,7 +476,7 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     printf("Parsed sleep value: %d\n", sleep_value);
 
     // Add formula and execute sleep
-    AddFormula(graph, Addcell(target_cell), ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
+    AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
     old_value = arr[target_cell];
     arr[target_cell] = sleep_value;
 }

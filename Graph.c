@@ -65,7 +65,7 @@ CELL=SLEEP(CELL)                    15
 */
 
 
-void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type,Formula *formulaArray)
+void AddFormula(Graph *graph, int cell, int c1, int c2, int op_type,Formula *formulaArray)
 {
     Formula newFormula;
     // Assignment               1       Value         NULL
@@ -85,7 +85,7 @@ void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type,Formula *f
         newFormula.op_info1 = c1;
         newFormula.op_info2 = c2;
     }
-    formulaArray[cell->cell] = newFormula;
+    formulaArray[cell] = newFormula;
 }
 
 int getHeight(Cell *c)
@@ -727,6 +727,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
     //printf("\n--- Starting Recalculation from cell %d ---\n", startCell);
 
     int size;
+    int hasCycle = 0;
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
     if (hasCycle)
     {

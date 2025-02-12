@@ -60,7 +60,7 @@ void getNodesFromAVL(Cell *root, int *nodes, int *count) ;
 int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle);
 extern Formula *formulaArray;
 void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray);
-void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type,Formula *formulaArray);
+void AddFormula(Graph *graph, int cell, int c1, int c2, int op_type,Formula *formulaArray);
 Cell *Deleteedge(Graph *graph, int cell, int COLS,Formula *formulaArray);
 
 int min2(int a, int b);

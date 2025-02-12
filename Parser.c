@@ -166,7 +166,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
     if (is_cell == 0)
     {
         arr[first_cell] = second_cell;
-        AddFormula(graph, Addcell(first_cell), second_cell, 0, 0,formulaArray);
+        AddFormula(graph, first_cell, second_cell, 0, 0,formulaArray);
         Recalc(graph, C, arr, first_cell,formulaArray);
     }
     else // Handle cell references
@@ -175,14 +175,14 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
             int tmp = -1*arr[second_cell];
             arr[first_cell] = tmp;
             graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-            AddFormula(graph, Addcell(first_cell), second_cell, -1, 3,formulaArray);
+            AddFormula(graph, first_cell, second_cell, -1, 3,formulaArray);
             Recalc(graph,C,arr,first_cell,formulaArray);
         }
         else{
             int tmp = arr[second_cell];
             arr[first_cell] = tmp;
             graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-            AddFormula(graph, Addcell(first_cell), second_cell, 0, 1,formulaArray);
+            AddFormula(graph, first_cell, second_cell, 0, 1,formulaArray);
             Recalc(graph, C, arr, first_cell,formulaArray);
         }
     }
@@ -594,21 +594,21 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     { // constant op constant
         res = arithmetic_eval(second_cell, third_cell, operation);
         arr[first_cell] = res;
-        AddFormula(graph, Addcell(first_cell), res, 0, 0,formulaArray);
+        AddFormula(graph, first_cell, res, 0, 0,formulaArray);
     }
     else if (is1cell && !is2cell)
     { // cell op constant
         res = arithmetic_eval(arr[second_cell], third_cell, operation);
         arr[first_cell] = res;
         graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-        AddFormula(graph, Addcell(first_cell), second_cell, third_cell, return_optype(operation),formulaArray);
+        AddFormula(graph, first_cell, second_cell, third_cell, return_optype(operation),formulaArray);
     }
     else if (!is1cell && is2cell)
     { // constant op cell
         res = arithmetic_eval(second_cell, arr[third_cell], operation);
         arr[first_cell] = res;
         graph->adjLists_head[third_cell] = Addedge(first_cell, graph->adjLists_head[third_cell]);
-        AddFormula(graph, Addcell(first_cell), third_cell, second_cell, return_optype(operation),formulaArray);
+        AddFormula(graph, first_cell, third_cell, second_cell, return_optype(operation),formulaArray);
     }
     else
     { // cell op cell
@@ -616,7 +616,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         arr[first_cell] = res;
         graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
         graph->adjLists_head[third_cell] = Addedge(first_cell, graph->adjLists_head[third_cell]);
-        AddFormula(graph, Addcell(first_cell), second_cell, third_cell, return_optype(operation) + 4,formulaArray);
+        AddFormula(graph, first_cell, second_cell, third_cell, return_optype(operation) + 4,formulaArray);
     }
 
     Recalc(graph, C, arr, first_cell,formulaArray);

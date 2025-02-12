@@ -7,7 +7,8 @@
 
 extern int NUM_CELLS; // Define the maximum number of cells
 
-// Formula structure to represent different types of operations
+
+    // Formula structure to represent different types of operations
 typedef struct Formula
 {
     int op_type;
@@ -46,6 +47,7 @@ Graph *CreateGraph();
 Cell *Addcell(int cell);
 Cell *Addedge(int cell1, Cell *x);
 Cell *Deletecell(int cell1, Cell *x);
+Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray);
 Queue *createQueue();
 void enqueue(Queue *q, int cell);
 int dequeue(Queue *q);

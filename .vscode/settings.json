@@ -3,6 +3,7 @@
     "files.associations": {
         "*.embeddedhtml": "html",
         "__locale": "c",
-        "parser.h": "c"
+        "parser.h": "c",
+        "ctype.h": "c"
     }
 }

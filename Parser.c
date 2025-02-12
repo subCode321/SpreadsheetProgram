@@ -6,6 +6,12 @@
 #include <limits.h>
 #include <ctype.h>
 
+int old_value;
+int old_op_type;
+int old_op_info1;
+int old_op_info2;
+int hasCycle;
+
 int isAlpha(char c)
 {
     if (c >= 'A' && c <= 'Z')
@@ -114,11 +120,15 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
         printf("Invalid cell\n");
         return;
     }
+    old_value = arr[first_cell];
+    old_op_type = formulaArray[first_cell].op_type;
+    old_op_info1 = formulaArray[first_cell].op_info1;
+    old_op_info2 = formulaArray[first_cell].op_info2;
 
     // Delete existing dependencies if the cell already has a formula
     if (formulaArray[first_cell].op_type > 0)
     {
-        Deleteedge(graph, first_cell, C,formulaArray);
+        Deleteedge(graph, first_cell, C, formulaArray);
     }
 
     int second_cell = -1;
@@ -185,6 +195,16 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
             AddFormula(graph, first_cell, second_cell, 0, 1,formulaArray);
             Recalc(graph, C, arr, first_cell,formulaArray);
         }
+    }
+    if (hasCycle) {
+        arr[first_cell] = old_value;
+        Deleteedge(graph, first_cell, C, formulaArray);
+
+        formulaArray[first_cell].op_type = old_op_type;
+        formulaArray[first_cell].op_info1 = old_op_info1;
+        formulaArray[first_cell].op_info2 = old_op_info2;
+
+        Addedge_formula(graph, first_cell, C, formulaArray);
     }
 }
 
@@ -583,6 +603,11 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         return;
     }
 
+    old_value = arr[first_cell];
+    old_op_type = formulaArray[first_cell].op_type;
+    old_op_info1 = formulaArray[first_cell].op_info1;
+    old_op_info2 = formulaArray[first_cell].op_info2;
+
     // Clean up existing formula if any
     if (formulaArray[first_cell].op_type > 0)
     {
@@ -620,6 +645,17 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     }
 
     Recalc(graph, C, arr, first_cell,formulaArray);
+    if (hasCycle)
+    {
+        arr[first_cell] = old_value;
+        Deleteedge(graph, first_cell, C, formulaArray);
+
+        formulaArray[first_cell].op_type = old_op_type;
+        formulaArray[first_cell].op_info1 = old_op_info1;
+        formulaArray[first_cell].op_info2 = old_op_info2;
+
+        Addedge_formula(graph, first_cell, C, formulaArray);
+    }
 }
 // void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph) {
 //     // Parse destination cell (e.g., "A1")
@@ -720,6 +756,10 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
         printf("Invalid cell");
         return;
     }
+    old_value = arr[first_cell];
+    old_op_type = formulaArray[first_cell].op_type;
+    old_op_info1 = formulaArray[first_cell].op_info1;
+    old_op_info2 = formulaArray[first_cell].op_info2;
 
     if (formulaArray[first_cell].op_type > 0)
     {
@@ -784,6 +824,17 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
     else
     {
         printf("Invalid function\n");
+    }
+    if (hasCycle)
+    {
+        arr[first_cell] = old_value;
+        Deleteedge(graph, first_cell, C, formulaArray);
+
+        formulaArray[first_cell].op_type = old_op_type;
+        formulaArray[first_cell].op_info1 = old_op_info1;
+        formulaArray[first_cell].op_info2 = old_op_info2;
+
+        Addedge_formula(graph, first_cell, C, formulaArray);
     }
 }
 

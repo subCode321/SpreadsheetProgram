@@ -6,7 +6,10 @@
 #include <limits.h>
 #include "Graph.h"
 
-int min2(int a, int b)
+extern int hasCycle;
+
+int
+    min2(int a, int b)
 {
     if (a < b)
         return a;
@@ -211,46 +214,8 @@ Cell *Addedge(int cell1, Cell *x)
     return x;
 }
 
-void printAVLTree(Cell *root, int level)
-{
-    if (root == NULL)
-        return;
-
-    // Print right subtree first (will appear at the top)
-    printAVLTree(root->right, level + 1);
-
-    // Print current node with proper indentation
-    for (int i = 0; i < level; i++)
-        printf("    "); // 4 spaces for each level
-
-    // Print current node value and its height
-    printf("%d (h=%d)\n", root->cell, root->height);
-
-    // Print left subtree
-    printAVLTree(root->left, level + 1);
-}
-
-// Wrapper function to print the AVL tree for a specific cell from the graph
-void printCellDependencies(Graph *graph, int cell)
-{
-    if (cell < 0 || cell >= NUM_CELLS || graph == NULL)
-    {
-        printf("Invalid cell number or graph is NULL\n");
-        return;
-    }
-
-    Cell *root = graph->adjLists_head[cell];
-    if (root == NULL)
-    {
-        printf("Cell %d has no dependencies\n", cell);
-        return;
-    }
-
-    printf("Dependencies for cell %d:\n", cell);
-    printAVLTree(root, 0);
-}
-
 Cell *Deletecell(int cell1, Cell *x);
+
 Cell *Deleteedge(Graph *graph, int cell, int COLS,Formula *formulaArray)
 {
     Formula x = formulaArray[cell];
@@ -343,6 +308,43 @@ Cell *Deletecell(int cell1, Cell *x)
     }
 
     return x;
+}
+Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray)
+{
+    Formula x = formulaArray[cell];
+
+    // For operations 1-4 (single cell operations)
+    if (x.op_type >= 1 && x.op_type <= 4)
+    {
+        graph->adjLists_head[x.op_info1] = Addedge(cell, graph->adjLists_head[x.op_info1]);
+    }
+    // For operations 5-8 (two cell operations)
+    else if (x.op_type >= 5 && x.op_type <= 8)
+    {
+        graph->adjLists_head[x.op_info1] = Addedge(cell, graph->adjLists_head[x.op_info1]);
+        graph->adjLists_head[x.op_info2] = Addedge(cell, graph->adjLists_head[x.op_info2]);
+    }
+    // For operations 9-13 (range operations)
+    else if (x.op_type >= 9 && x.op_type <= 13)
+    {
+        int startCell = x.op_info1;
+        int endCell = x.op_info2;
+        int startRow = startCell / COLS;
+        int startCol = startCell % COLS;
+        int endRow = endCell / COLS;
+        int endCol = endCell % COLS;
+
+        // Add edges for all cells in the range
+        for (int row = startRow; row <= endRow; ++row)
+        {
+            for (int col = startCol; col <= endCol; ++col)
+            {
+                int targetCell = row * COLS + col;
+                graph->adjLists_head[targetCell] = Addedge(cell, graph->adjLists_head[targetCell]);
+            }
+        }
+    }
+    return NULL;
 }
 
 /*
@@ -727,7 +729,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
     //printf("\n--- Starting Recalculation from cell %d ---\n", startCell);
 
     int size;
-    int hasCycle = 0;
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
     if (hasCycle)
     {

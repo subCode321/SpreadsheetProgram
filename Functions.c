@@ -73,7 +73,7 @@ int return_optype(char op)
     return INT_MIN;
 }
 
-void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell;
 
@@ -106,7 +106,7 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 9);
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 9,formulaArray);
 
     int min_value = arr[range_start];
 
@@ -150,7 +150,7 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     arr[first_cell] = min_value;
 }
 
-void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell;
 
@@ -183,7 +183,7 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 10);
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 10,formulaArray);
 
     int max_value = arr[range_start];
 
@@ -228,7 +228,7 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     arr[first_cell] = max_value;
 }
 
-void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
@@ -260,7 +260,7 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 11);
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 11,formulaArray);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -287,7 +287,7 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     arr[first_cell] = avg_value;
 }
 
-void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
@@ -320,7 +320,7 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         return;
     }
 
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 12);
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 12,formulaArray);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -346,7 +346,7 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     arr[first_cell] = sum;
 }
 
-void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
@@ -379,7 +379,7 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         return;
     }
 
-    AddFormula(graph, Addcell(first_cell), range_start, range_end, 13);
+    AddFormula(graph, Addcell(first_cell), range_start, range_end, 13,formulaArray);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -421,7 +421,7 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     arr[first_cell] = stdev;
 }
 
-void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int target_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (target_cell == -1)
@@ -475,7 +475,7 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     printf("Parsed sleep value: %d\n", sleep_value);
 
     // Add formula and execute sleep
-    AddFormula(graph, Addcell(target_cell), ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14);
+    AddFormula(graph, Addcell(target_cell), ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14,formulaArray);
 
     arr[target_cell] = sleep_value;
 }

@@ -105,7 +105,7 @@ int cell_parser(char *a, int C, int R, int start, int end, Graph *graph)
 //     }
 
 // }
-void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell;
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
@@ -118,7 +118,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
     // Delete existing dependencies if the cell already has a formula
     if (formulaArray[first_cell].op_type > 0)
     {
-        Deleteedge(graph, first_cell, C);
+        Deleteedge(graph, first_cell, C,formulaArray);
     }
 
     int second_cell = -1;
@@ -166,8 +166,8 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
     if (is_cell == 0)
     {
         arr[first_cell] = second_cell;
-        AddFormula(graph, Addcell(first_cell), second_cell, 0, 0);
-        Recalc(graph, C, arr, first_cell);
+        AddFormula(graph, Addcell(first_cell), second_cell, 0, 0,formulaArray);
+        Recalc(graph, C, arr, first_cell,formulaArray);
     }
     else // Handle cell references
     {
@@ -175,15 +175,15 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
             int tmp = -1*arr[second_cell];
             arr[first_cell] = tmp;
             graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-            AddFormula(graph, Addcell(first_cell), second_cell, -1, 3);
-            Recalc(graph,C,arr,first_cell);
+            AddFormula(graph, Addcell(first_cell), second_cell, -1, 3,formulaArray);
+            Recalc(graph,C,arr,first_cell,formulaArray);
         }
         else{
             int tmp = arr[second_cell];
             arr[first_cell] = tmp;
             graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-            AddFormula(graph, Addcell(first_cell), second_cell, 0, 1);
-            Recalc(graph, C, arr, first_cell);
+            AddFormula(graph, Addcell(first_cell), second_cell, 0, 1,formulaArray);
+            Recalc(graph, C, arr, first_cell,formulaArray);
         }
     }
 }
@@ -400,7 +400,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
 //         Recalc(graph, C, arr, first_cell);
 //     }
 // }
-void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell, second_cell, third_cell;
     int res = 0;
@@ -586,7 +586,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     // Clean up existing formula if any
     if (formulaArray[first_cell].op_type > 0)
     {
-        Deleteedge(graph, first_cell, C);
+        Deleteedge(graph, first_cell, C,formulaArray);
     }
 
     // Handle all four cases
@@ -594,21 +594,21 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     { // constant op constant
         res = arithmetic_eval(second_cell, third_cell, operation);
         arr[first_cell] = res;
-        AddFormula(graph, Addcell(first_cell), res, 0, 0);
+        AddFormula(graph, Addcell(first_cell), res, 0, 0,formulaArray);
     }
     else if (is1cell && !is2cell)
     { // cell op constant
         res = arithmetic_eval(arr[second_cell], third_cell, operation);
         arr[first_cell] = res;
         graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-        AddFormula(graph, Addcell(first_cell), second_cell, third_cell, return_optype(operation));
+        AddFormula(graph, Addcell(first_cell), second_cell, third_cell, return_optype(operation),formulaArray);
     }
     else if (!is1cell && is2cell)
     { // constant op cell
         res = arithmetic_eval(second_cell, arr[third_cell], operation);
         arr[first_cell] = res;
         graph->adjLists_head[third_cell] = Addedge(first_cell, graph->adjLists_head[third_cell]);
-        AddFormula(graph, Addcell(first_cell), third_cell, second_cell, return_optype(operation));
+        AddFormula(graph, Addcell(first_cell), third_cell, second_cell, return_optype(operation),formulaArray);
     }
     else
     { // cell op cell
@@ -616,10 +616,10 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         arr[first_cell] = res;
         graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
         graph->adjLists_head[third_cell] = Addedge(first_cell, graph->adjLists_head[third_cell]);
-        AddFormula(graph, Addcell(first_cell), second_cell, third_cell, return_optype(operation) + 4);
+        AddFormula(graph, Addcell(first_cell), second_cell, third_cell, return_optype(operation) + 4,formulaArray);
     }
 
-    Recalc(graph, C, arr, first_cell);
+    Recalc(graph, C, arr, first_cell,formulaArray);
 }
 // void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph) {
 //     // Parse destination cell (e.g., "A1")
@@ -710,7 +710,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
 //     printf("first %d\nsecond %d\n%c\n%d\n", operand1_value, operand2_value, op, res);
 // }
 
-void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph)
+void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell;
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
@@ -723,7 +723,7 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
 
     if (formulaArray[first_cell].op_type > 0)
     {
-        Deleteedge(graph, first_cell, C);
+        Deleteedge(graph, first_cell, C,formulaArray);
     }
 
     char *open_paren1 = strchr(a + pos_equalto, '(');
@@ -744,36 +744,36 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
         {
             if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'T' && a[pos_equalto + 3] == 'D' && a[pos_equalto + 4] == 'E' && a[pos_equalto + 5] == 'V')
             {
-                stdev_func(a, C, R, pos_equalto, pos_end, arr, graph);
-                Recalc(graph, C, arr, first_cell);
+                stdev_func(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+                Recalc(graph, C, arr, first_cell,formulaArray);
             }
             else if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'L' && a[pos_equalto + 3] == 'E' && a[pos_equalto + 4] == 'E' && a[pos_equalto + 5] == 'P')
             {
-                sleep_func(a, C, R, pos_equalto, pos_end, arr, graph);
-                Recalc(graph, C, arr, first_cell);
+                sleep_func(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+                Recalc(graph, C, arr, first_cell,formulaArray);
             }
         }
         else if (idx_open - pos_equalto - 1 == 3)
         {
             if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'I' && a[pos_equalto + 3] == 'N')
             {
-                min_func(a, C, R, pos_equalto, pos_end, arr, graph);
-                Recalc(graph, C, arr, first_cell);
+                min_func(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+                Recalc(graph, C, arr, first_cell,formulaArray);
             }
             else if (a[pos_equalto + 1] == 'M' && a[pos_equalto + 2] == 'A' && a[pos_equalto + 3] == 'X')
             {
-                maxfunc(a, C, R, pos_equalto, pos_end, arr, graph);
-                Recalc(graph, C, arr, first_cell);
+                maxfunc(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+                Recalc(graph, C, arr, first_cell,formulaArray);
             }
             else if (a[pos_equalto + 1] == 'A' && a[pos_equalto + 2] == 'V' && a[pos_equalto + 3] == 'G')
             {
-                avg_func(a, C, R, pos_equalto, pos_end, arr, graph);
-                Recalc(graph, C, arr, first_cell);
+                avg_func(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+                Recalc(graph, C, arr, first_cell,formulaArray);
             }
             else if (a[pos_equalto + 1] == 'S' && a[pos_equalto + 2] == 'U' && a[pos_equalto + 3] == 'M')
             {
-                sum_func(a, C, R, pos_equalto, pos_end, arr, graph);
-                Recalc(graph, C, arr, first_cell);
+                sum_func(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+                Recalc(graph, C, arr, first_cell,formulaArray);
             }
         }
         else
@@ -787,7 +787,7 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
     }
 }
 
-int parser(char *a, int C, int R, int *arr, Graph *graph)
+int parser(char *a, int C, int R, int *arr, Graph *graph,Formula *formulaArray)
 {
 
     if (a[0] == 'w' || a[0] == 'd' || a[0] == 'a' || a[0] == 's')
@@ -847,17 +847,17 @@ int parser(char *a, int C, int R, int *arr, Graph *graph)
 
     if (value == 1)
     {
-        valuefunc(a, C, R, pos_equalto, pos_end, arr, graph);
+        valuefunc(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
         // printf("Hello");
     }
     else if (arth_exp == 1)
     {
-        arth_op(a, C, R, pos_equalto, pos_end, arr, graph);
+        arth_op(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
     }
     else if (func == 1)
     {
 
-        funct(a, C, R, pos_equalto, pos_end, arr, graph);
+        funct(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
     }
 
     if (value == 1 || func == 1 || arth_exp == 1)

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUM_CELLS 18259722 // Define the maximum number of cells
+extern int NUM_CELLS; // Define the maximum number of cells
 
 // Formula structure to represent different types of operations
 typedef struct Formula
@@ -45,7 +45,6 @@ typedef struct Queue
 Graph *CreateGraph();
 Cell *Addcell(int cell);
 Cell *Addedge(int cell1, Cell *x);
-Cell *Deleteedge(Graph *graph, int cell, int COLS);
 Cell *Deletecell(int cell1, Cell *x);
 Queue *createQueue();
 void enqueue(Queue *q, int cell);
@@ -56,12 +55,14 @@ int getBalance(Cell *c);
 Cell *rightRotation(Cell *y);
 Cell *leftRotation(Cell *x);
 
-void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type);
 
 void getNodesFromAVL(Cell *root, int *nodes, int *count) ;
 int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle);
-void Recalc(Graph *graph, int C, int *arr, int startCell);
-extern Formula formulaArray[NUM_CELLS];
+extern Formula *formulaArray;
+void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray);
+void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type,Formula *formulaArray);
+Cell *Deleteedge(Graph *graph, int cell, int COLS,Formula *formulaArray);
+
 int min2(int a, int b);
 int max2(int a, int b);
 void printAVLTree(Cell *root, int level);

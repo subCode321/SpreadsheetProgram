@@ -6,9 +6,11 @@
 #include "Graph.h"
 #include "string.h"
 
+int NUM_CELLS;
+Formula *formulaArray;
+
 int main(int argc, char *argv[])
 {
-    Graph *graph = CreateGraph();
     if (argc != 3)
     {
         printf("Usage: %s <rows> <columns>\n", argv[0]);
@@ -17,6 +19,9 @@ int main(int argc, char *argv[])
 
     int R = atoi(argv[1]);
     int C = atoi(argv[2]);
+    NUM_CELLS=R*C;
+    Graph *graph = CreateGraph();
+    formulaArray = malloc(NUM_CELLS * sizeof(Formula));
 
     int *arr = (int *)calloc(R * C, sizeof(int));
     if (arr == NULL)
@@ -83,7 +88,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            status = parser(a, C, R, arr, graph);
+            status = parser(a, C, R, arr, graph,formulaArray);
         }
 
         clock_t end = clock();

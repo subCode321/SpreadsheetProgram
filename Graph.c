@@ -4,8 +4,7 @@
 #include <math.h>
 #include <unistd.h> // For sleep function
 #include <limits.h>
-
-#define NUM_CELLS 18259722
+#include "Graph.h"
 
 int min2(int a, int b)
 {
@@ -65,30 +64,8 @@ CELL=SLEEP(CONSTANT)                14
 CELL=SLEEP(CELL)                    15
 */
 
-typedef struct Formula
-{
-    int op_type;
-    int op_info1;
-    int op_info2;
 
-} Formula;
-
-typedef struct Cell
-{
-    int cell;
-    struct Cell *left;
-    struct Cell *right;
-    int height;
-} Cell;
-
-typedef struct Graph
-{
-    struct Cell **adjLists_head;
-} Graph;
-
-Formula formulaArray[NUM_CELLS];
-
-void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type)
+void AddFormula(Graph *graph, Cell *cell, int c1, int c2, int op_type,Formula *formulaArray)
 {
     Formula newFormula;
     // Assignment               1       Value         NULL
@@ -274,7 +251,7 @@ void printCellDependencies(Graph *graph, int cell)
 }
 
 Cell *Deletecell(int cell1, Cell *x);
-Cell *Deleteedge(Graph *graph, int cell, int COLS)
+Cell *Deleteedge(Graph *graph, int cell, int COLS,Formula *formulaArray)
 {
     Formula x = formulaArray[cell];
 
@@ -387,16 +364,6 @@ CELL=STDEV(RANGE)                   13
 CELL=SLEEP(CONSTANT)                14
 CELL=SLEEP(CELL)                    15
 */
-typedef struct QueueNode
-{
-    int cell;
-    struct QueueNode *next;
-} QueueNode;
-
-typedef struct Queue
-{
-    QueueNode *front, *rear;
-} Queue;
 
 Queue *createQueue()
 {
@@ -767,7 +734,7 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 //     free(sortedCells);
 // }
 
-void Recalc(Graph *graph, int C, int *arr, int startCell)
+void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
 {
     printf("\n--- Starting Recalculation from cell %d ---\n", startCell);
 

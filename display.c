@@ -80,7 +80,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
         else
         {
             *curry -= 10;
-            printer(*currx, *curry, arr, C, R);
+            // printer(*currx, *curry, arr, C, R);
         }
     }
     else if (a[0] == 'd' && a[1] == '\0')
@@ -92,7 +92,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
         else
         {
             *currx += 10;
-            printer(*currx, *curry, arr, C, R);
+            // printer(*currx, *curry, arr, C, R);
         }
     }
     else if (a[0] == 'a' && a[1] == '\0')
@@ -104,7 +104,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
         else
         {
             *currx -= 10;
-            printer(*currx, *curry, arr, C, R);
+            // printer(*currx, *curry, arr, C, R);
         }
     }
     else if (a[0] == 's' && a[1] == '\0')
@@ -116,7 +116,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
         else
         {
             *curry += 10;
-            printer(*currx, *curry, arr, C, R);
+            // printer(*currx, *curry, arr, C, R);
         }
     }
 
@@ -142,7 +142,7 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
             {
                 *currx = start_col;
                 *curry = start_row;
-                printer(*currx, *curry, arr, C, R);
+                // printer(*currx, *curry, arr, C, R);
             }
         }
     }
@@ -157,6 +157,6 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
     }
     else
     {
-        printf("ok\n");
+        ;
     }
 }

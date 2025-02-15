@@ -776,7 +776,7 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
     }
 
     int idx_open = open_paren1 - a;
-    int idx_close = close_paren1 - a;
+    //int idx_close = close_paren1 - a;
 
     if (idx_open - pos_equalto >= 3)
     {

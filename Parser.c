@@ -31,13 +31,22 @@ int cell_parser(char *a, int C, int R, int start, int end, Graph *graph)
 {
     int cell_col = 0;
     int cell_row = 0;
+    int dfound = 0;
 
     for (int i = start; i <= end; i++)
     {
-        if (isAlpha(a[i]))
-            cell_col = 26 * cell_col + (a[i] - 'A' + 1);
-        else if (isDigit(a[i]))
+        if (isAlpha(a[i])){
+            if(!dfound){
+                cell_col = 26 * cell_col + (a[i] - 'A' + 1);
+            }
+            else{
+                return -1;
+            }
+        }
+        else if (isDigit(a[i])){
             cell_row = 10 * cell_row + (a[i] - '0');
+            dfound =1;
+        }
         else
             return -1;
     }
@@ -206,6 +215,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
 
         Addedge_formula(graph, first_cell, C, formulaArray);
     }
+    printf("%d %d\n", first_cell, second_cell);
 }
 
 // void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph *graph)
@@ -502,6 +512,25 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
             num1[l1++] = a[i];
         }
     }
+    printf("%s\n", cell1);
+    if(is1cell){
+        cell1[l1]='\0';
+        int ii=0;
+        int dfound = 0;
+        while(cell1[ii]!='\0'){
+            if(isdigit(cell1[ii]) && !dfound){
+                dfound = 1;
+            }
+            else if(!isdigit(cell1[ii]) && dfound){
+                notvalid = 1;
+
+            }
+            ii++;
+        }
+        
+
+
+    }
 
     // Parse second operand
     int is2cell = 0, is2num = 0;
@@ -553,6 +582,24 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
             is2num = 1;
             num2[l2++] = a[i];
         }
+    }
+
+    if(is2cell){
+        cell2[l2]='\0';
+        int jj=0;
+        int ddfound = 0;
+        while(cell2[jj]!='\0'){
+            if(isdigit(cell2[jj]) && !ddfound){
+                ddfound = 1;
+            }
+            else if(!isdigit(cell2[jj]) && ddfound){
+                notvalid = 1;
+
+            }
+            jj++;
+
+        }
+
     }
 
     if (notvalid || (!is1cell && !is1num) || (!is2cell && !is2num))

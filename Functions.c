@@ -455,16 +455,21 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         sleep_value = strtol(open_paren + 1, &end_ptr, 10);
         if (*end_ptr != ')' || sleep_value <= 0)
         {
-            printf("SLEEP value must evaluate to a positive integer\n");
-            arr[target_cell] = INT_MIN; // Propagate error
+            printf("here1\n");
+            //printf("SLEEP value must evaluate to a positive integer\n");
+            arr[target_cell] = sleep_value; 
+            printf("%d", ref_cell);
+            AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
             return;
         }
     }
 
     if (sleep_value <= 0)
     {
-        printf("SLEEP value must evaluate to a positive integer\n");
-        arr[target_cell] = INT_MIN; // Propagate error
+        printf("here2\n");
+        // printf("SLEEP value must evaluate to a positive integer\n");
+        arr[target_cell] = sleep_value; 
+        AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
         return;
     }
 

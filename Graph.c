@@ -903,14 +903,21 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
         else if (f.op_type == 14) // Handle SLEEP operation
         {
             int sleep_value = (f.op_info1 == cell) ? f.op_info2 : arr[f.op_info1];
-            printf("  Performing SLEEP operation for cell %d with value %d\n", cell, sleep_value);
+            
 
-            if (sleep_value <= 0 || sleep_value == INT_MIN)
+            if ( sleep_value == INT_MIN)
             {
                 printf("  Error: Invalid sleep value in cell %d\n", cell);
                 arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
+            else if(sleep_value <= 0){
+                printf("sleep value negative, assigning value but not performing sleep\n");
+                arr[cell] = sleep_value;
+                continue;
+
+            }
+            printf("  Performing SLEEP operation for cell %d with value %d\n", cell, sleep_value);
 
             sleep(sleep_value);      // Perform sleep operation
             arr[cell] = sleep_value; // Update the cell value

@@ -11,6 +11,8 @@ Formula *formulaArray;
 
 int main(int argc, char *argv[])
 {
+    clock_t start = clock(); // Start timing from the very beginning
+
     if (argc != 3)
     {
         printf("Usage: %s <rows> <columns>\n", argv[0]);
@@ -19,8 +21,8 @@ int main(int argc, char *argv[])
 
     int R = atoi(argv[1]);
     int C = atoi(argv[2]);
-    
-    NUM_CELLS=R*C;
+
+    NUM_CELLS = R * C;
     Graph *graph = CreateGraph();
     formulaArray = malloc(NUM_CELLS * sizeof(Formula));
 
@@ -40,6 +42,11 @@ int main(int argc, char *argv[])
     {
         printer(currx, curry, arr, C, R);
     }
+
+    // Print timing and status always
+    clock_t end = clock();
+    double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("[%.6f] (ok) ", time_taken);
 
     char *a = (char *)malloc(200 * sizeof(char));
     if (a == NULL)
@@ -68,13 +75,18 @@ int main(int argc, char *argv[])
         if (strcmp(a, "disable_output") == 0)
         {
             output_disabled = 1;
+            clock_t end = clock();
+            double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+            printf("[%.6f] (ok) ", time_taken);
             continue;
         }
         else if (strcmp(a, "enable_output") == 0)
         {
             output_disabled = 0;
-            // Show current state when output is re-enabled
+            clock_t end = clock();
+            double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
             printer(currx, curry, arr, C, R);
+            printf("[%.6f] (ok) ", time_taken);
             continue;
         }
 
@@ -89,24 +101,26 @@ int main(int argc, char *argv[])
         }
         else
         {
-            status = parser(a, C, R, arr, graph,formulaArray);
+            status = parser(a, C, R, arr, graph, formulaArray);
         }
 
         clock_t end = clock();
         double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-        // Only display output if not disabled
+        // Only display spreadsheet if output is not disabled
         if (!output_disabled)
         {
             printer(currx, curry, arr, C, R);
-            if (status > 0)
-            {
-                printf("[%.6f] (ok)  ", time_taken);
-            }
-            else
-            {
-                printf("[%.6f] (unrecognized command) ", time_taken);
-            }
+        }
+
+        // Always print time & status regardless of output setting
+        if (status > 0)
+        {
+            printf("[%.6f] (ok) ", time_taken);
+        }
+        else
+        {
+            printf("[%.6f] (unrecognized command) ", time_taken);
         }
     }
 

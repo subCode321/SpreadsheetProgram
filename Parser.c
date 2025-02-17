@@ -35,31 +35,37 @@ int cell_parser(char *a, int C, int R, int start, int end, Graph *graph)
 
     for (int i = start; i <= end; i++)
     {
-        if (isAlpha(a[i])){
-            if(!dfound){
+        if (isAlpha(a[i]))
+        {
+            if (!dfound)
+            {
                 cell_col = 26 * cell_col + (a[i] - 'A' + 1);
             }
-            else{
-                return -1;
+            else
+            {
+                return -1; // Reject if letters appear after digits
             }
         }
-        else if (isDigit(a[i])){
+        else if (isDigit(a[i]))
+        {
             cell_row = 10 * cell_row + (a[i] - '0');
-            dfound =1;
+            dfound = 1;
         }
         else
-            return -1;
+            return -1; // Reject invalid characters
     }
-    cell_col -= 1;
-    cell_row -= 1;
 
-    if (cell_col == -1 || cell_row == -1)
+    cell_col -= 1; // Convert to 0-based index
+    cell_row -= 1; // Convert to 0-based index
+
+    // Reject if column or row is negative or out of bounds
+    if (cell_col < 0 || cell_row < 0 || cell_col >= C || cell_row >= R)
     {
         return -1;
     }
+
     return C * cell_row + cell_col;
 }
-
 // void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
 // {
 //     int first_cell;
@@ -172,7 +178,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
 
     if (second_cell == -1)
     {
-        printf("Invalid command\n");
+        printf("Invalid cell\n");
         return;
     }
 
@@ -215,7 +221,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
 
         Addedge_formula(graph, first_cell, C, formulaArray);
     }
-    printf("%d %d\n", first_cell, second_cell);
+    // printf("%d %d\n", first_cell, second_cell);
 }
 
 // void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph *graph)
@@ -512,7 +518,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
             num1[l1++] = a[i];
         }
     }
-    printf("%s\n", cell1);
+    // printf("%s\n", cell1);
     if(is1cell){
         cell1[l1]='\0';
         int ii=0;
@@ -631,7 +637,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         third_cell = cell_parser(cell2, C, R, 0, l2 - 1, graph);
         if (third_cell == -1)
         {
-            printf("%s", cell2);
+            // printf("%s", cell2);
             printf("Invalid cell reference\n");
             return;
         }

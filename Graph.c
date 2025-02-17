@@ -738,8 +738,8 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
     }
 
     //printf("Topologically sorted cells for recalculation: ");
-    for (int i = 0; i < size; i++)
-        printf("%d ", sortedCells[i]);
+    // for (int i = 0; i < size; i++)
+    //     printf("%d ", sortedCells[i]);
     //printf("\n");
 
     for (int i = 0; i < size; i++)
@@ -765,7 +765,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
             else
             {
                 arr[cell] = f.op_info1; // Assign valid value
-                printf("  Assigned constant value to cell %d: %d\n", cell, arr[cell]);
+                // printf("  Assigned constant value to cell %d: %d\n", cell, arr[cell]);
             }
         }
 
@@ -774,7 +774,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
             int v1 = arr[f.op_info1];
             int v2 = f.op_info2;
 
-            printf("  Performing operation: v1=%d, v2=%d\n", v1, v2);
+            // printf("  Performing operation: v1=%d, v2=%d\n", v1, v2);
 
             if (v1 == INT_MIN)
             {
@@ -789,7 +789,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
 
             if (op == '/' && v2 == 0)
             {
-                printf("  Error: Division by zero in cell %d\n", cell);
+                // printf("  Error: Division by zero in cell %d\n", cell);
                 arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
@@ -803,12 +803,12 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
             int v1 = arr[f.op_info1];
             int v2 = arr[f.op_info2];
 
-            printf("  Performing operation between cells %d and %d: v1=%d, v2=%d\n",
-                   f.op_info1, f.op_info2, v1, v2);
+            // printf("  Performing operation between cells %d and %d: v1=%d, v2=%d\n",
+                //    f.op_info1, f.op_info2, v1, v2);
 
             if (f.op_type == 8 && v2 == 0)
             {
-                printf("  Error: Division by zero in cell %d\n", cell);
+                // printf("  Error: Division by zero in cell %d\n", cell);
                 arr[cell] = INT_MIN; // Mark this cell as error
                 continue;
             }
@@ -871,7 +871,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
 
             if (hasError)
             {
-                printf("  Error: Range contains invalid values\n");
+                // printf("  Error: Range contains invalid values\n");
                 arr[cell] = INT_MIN; // Propagate error
                 continue;
             }
@@ -912,16 +912,16 @@ void Recalc(Graph *graph, int C, int *arr, int startCell,Formula *formulaArray)
                 continue;
             }
             else if(sleep_value <= 0){
-                printf("sleep value negative, assigning value but not performing sleep\n");
+                // printf("sleep value negative, assigning value but not performing sleep\n");
                 arr[cell] = sleep_value;
                 continue;
 
             }
-            printf("  Performing SLEEP operation for cell %d with value %d\n", cell, sleep_value);
+            // printf("  Performing SLEEP operation for cell %d with value %d\n", cell, sleep_value);
 
             sleep(sleep_value);      // Perform sleep operation
             arr[cell] = sleep_value; // Update the cell value
-            printf("  Sleep completed for cell %d\n", cell);
+            // printf("  Sleep completed for cell %d\n", cell);
         }
     }
     free(sortedCells);

@@ -41,7 +41,7 @@ int arithmetic_eval(int v1, int v2, char op)
     {
         if (v2 == 0)
         {
-            printf("Error: Division by zero\n");
+            // printf("Error: Division by zero\n");
             return INT_MIN; // Signal an error
         }
         return v1 / v2;
@@ -455,10 +455,10 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         sleep_value = strtol(open_paren + 1, &end_ptr, 10);
         if (*end_ptr != ')' || sleep_value <= 0)
         {
-            printf("here1\n");
+            // printf("here1\n");
             //printf("SLEEP value must evaluate to a positive integer\n");
             arr[target_cell] = sleep_value; 
-            printf("%d", ref_cell);
+            // printf("%d", ref_cell);
             AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
             return;
         }
@@ -466,14 +466,14 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
 
     if (sleep_value <= 0)
     {
-        printf("here2\n");
+        // printf("here2\n");
         // printf("SLEEP value must evaluate to a positive integer\n");
         arr[target_cell] = sleep_value; 
         AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
         return;
     }
 
-    printf("Parsed sleep value: %d\n", sleep_value);
+    // printf("Parsed sleep value: %d\n", sleep_value);
 
     // Add formula and execute sleep
     AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);

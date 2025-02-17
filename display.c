@@ -24,12 +24,12 @@ int max(int x, int y)
 
 void printer(int currx, int curry, int *arr, int C, int R)
 {
-    printf("   ");
+    printf("      ");
 
-    for (int i = 0; i < min(10, C - currx); i++)
+    for (int i = 0; i < (C - currx < 10 ? C - currx : 10); i++)
     {
         int val = currx + i + 1;
-        char s[5];
+        char s[5], s2[5];
         int idx = 0;
 
         while (val > 0)
@@ -39,110 +39,133 @@ void printer(int currx, int curry, int *arr, int C, int R)
             val /= 26;
         }
         s[idx] = '\0';
-        char s2[5];
 
-        for (int j = idx - 1; j >= 0; j--)
+        // Reverse the string for correct order
+        for (int j = 0; j < idx; j++)
         {
-            s2[idx - 1 - j] = s[j];
+            s2[j] = s[idx - j - 1];
         }
-        printf("%-10s", s);
+        s2[idx] = '\0'; // Ensure null termination
+
+        printf("%-10s", s2); // Changed to left-align the column headers
     }
     printf("\n");
 
-    for (int j = 0; j < min(10, R - curry); j++)
+    for (int j = 0; j < (R - curry < 10 ? R - curry : 10); j++)
     {
-        printf("%-3d", curry + j + 1);
-        for (int i = 0; i < min(10, C - currx); i++)
+        printf("%-3d", curry + j + 1); // Row number (left-aligned)
+        printf("   ");
+        for (int i = 0; i < (C - currx < 10 ? C - currx : 10); i++)
         {
             int value = arr[(currx + i) + C * (curry + j)];
             if (value == INT_MIN)
             {
-                printf("%-10s", "Err"); // Print "Err" for error cells
+                printf("%-10s", "ERR"); // Left-aligned "ERR"
             }
             else
             {
-                printf("%-10d", value); // Print valid cell values
+                printf("%-10d", value); // Left-aligned numbers
             }
         }
         printf("\n");
     }
 }
+
 void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *graph)
 {
     int flag = 0;
-
     if (a[0] == 'w' && a[1] == '\0')
     {
+        // If there are less than 10 rows above, scroll to the top
         if (*curry < 10)
         {
-            flag = 1;
+            if (*curry > 0) // If we're not already at the top
+            {
+                *curry = 0;
+            }
+            else
+            {
+                flag = 1;
+            }
         }
         else
         {
             *curry -= 10;
-            // printer(*currx, *curry, arr, C, R);
         }
     }
     else if (a[0] == 'd' && a[1] == '\0')
     {
-        if (*currx >= C - 10)
+        // Calculate how many columns we can scroll right
+        int remaining_cols = C - *currx - 10;
+        if (remaining_cols <= 0)
         {
             flag = 1;
+        }
+        else if (remaining_cols < 10)
+        {
+            *currx += remaining_cols;
         }
         else
         {
             *currx += 10;
-            // printer(*currx, *curry, arr, C, R);
         }
     }
     else if (a[0] == 'a' && a[1] == '\0')
     {
+        // If there are less than 10 columns to the left, scroll to the leftmost
         if (*currx < 10)
         {
-            flag = 1;
+            if (*currx > 0) // If we're not already at the leftmost
+            {
+                *currx = 0;
+            }
+            else
+            {
+                flag = 1;
+            }
         }
         else
         {
             *currx -= 10;
-            // printer(*currx, *curry, arr, C, R);
         }
     }
     else if (a[0] == 's' && a[1] == '\0')
     {
-        if (*curry >= R - 10)
+        // Calculate how many rows we can scroll down
+        int remaining_rows = R - *curry - 10;
+        if (remaining_rows <= 0)
         {
             flag = 1;
+        }
+        else if (remaining_rows < 10)
+        {
+            *curry += remaining_rows;
         }
         else
         {
             *curry += 10;
-            // printer(*currx, *curry, arr, C, R);
         }
     }
-
     else if (strncmp(a, "scroll_to ", 10) == 0)
     {
         int cell = cell_parser(a, C, R, 10, strlen(a) - 1, graph);
         if (cell == -1)
         {
-            printf("Invalid cell input in scroll_to command\n");
             flag = 1;
         }
         else
         {
             int start_row = cell / C;
             int start_col = cell % C;
-            printf("Parsed row: %d, col: %d\n", start_row, start_col); // Debugging output
             if (start_row >= R || start_col >= C)
             {
-                printf("Scroll target out of bounds\n");
+                // printf("Scroll target out of bounds\n");
                 flag = 1;
             }
             else
             {
                 *currx = start_col;
                 *curry = start_row;
-                // printer(*currx, *curry, arr, C, R);
             }
         }
     }
@@ -150,13 +173,8 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
     {
         printf("unrecognized command");
     }
-
     if (flag)
     {
-        printf("Invalid\n");
-    }
-    else
-    {
-        ;
+        ; // Do nothing on invalid scroll
     }
 }

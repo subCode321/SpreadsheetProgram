@@ -126,5 +126,8 @@ int main(int argc, char *argv[])
 
     free(a);
     free(arr);
+    free(formulaArray);
+    FreeGraph(graph);
+
     return 0;
 }

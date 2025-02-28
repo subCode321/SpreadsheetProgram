@@ -253,25 +253,6 @@ Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray)
     return NULL;
 }
 
-/*
-FORMULA                         OPTYPE
-CELL=CONSTANT                       0
-CELL=CELL+CONSTANT                  1
-CELL=CELL-CONSTANT                  2
-CELL=CELL*CONSTANT                  3
-CELL=CELL/CONSTANT                  4
-CELL=CELL+CELL                      5
-CELL=CELL-CELL                      6
-CELL=CELL*CELL                      7
-CELL=CELL/CELL                      8
-CELL=MIN(RANGE)                     9
-CELL=MAX(RANGE)                     10
-CELL=AVG(RANGE)                     11
-CELL=SUM(RANGE)                     12
-CELL=STDEV(RANGE)                   13
-CELL=SLEEP(CONSTANT)                14
-CELL=SLEEP(CELL)                    15
-*/
 
 Queue *createQueue()
 {
@@ -568,4 +549,23 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
         }
     }
     free(sortedCells);
+}
+void FreeGraph(Graph *graph)
+{
+    if (!graph)
+        return;
+
+    for (int i = 0; i < NUM_CELLS; i++)
+    {
+        Cell *current = graph->adjLists_head[i];
+        while (current)
+        {
+            Cell *temp = current;
+            current = current->next;
+            free(temp);
+        }
+    }
+
+    free(graph->adjLists_head);
+    free(graph);
 }

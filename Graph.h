@@ -67,8 +67,8 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle);
 // Operation functions
 void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray);
 void AddFormula(Graph *graph, int cell, int c1, int c2, int op_type, Formula *formulaArray);
-
-// Helper functions
+void FreeGraph(Graph *graph);
+    // Helper functions
 int min2(int a, int b);
 int max2(int a, int b);
 int arithmetic_eval2(int v1, int v2, char op);

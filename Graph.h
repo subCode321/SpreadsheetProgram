@@ -4,11 +4,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+#include <math.h>
 
-extern int NUM_CELLS; // Define the maximum number of cells
+extern int NUM_CELLS;
 
+// Structure for a cell in the adjacency list
+typedef struct Cell
+{
+    int cell;
+    struct Cell *next;
+} Cell;
 
-    // Formula structure to represent different types of operations
+// Queue node structure for BFS
+typedef struct QueueNode
+{
+    int cell;
+    struct QueueNode *next;
+} QueueNode;
+
+// Queue structure
+typedef struct Queue
+{
+    QueueNode *front;
+    QueueNode *rear;
+} Queue;
+
+// Formula structure to represent different types of operations
 typedef struct Formula
 {
     int op_type;
@@ -16,60 +38,42 @@ typedef struct Formula
     int op_info2;
 } Formula;
 
-// Cell structure representing a node in an AVL tree
-typedef struct Cell
-{
-    int cell;
-    struct Cell *left;
-    struct Cell *right;
-    int height;
-} Cell;
-
-// Graph structure holding the adjacency list (as AVL trees)
+// Graph structure holding the adjacency list
 typedef struct Graph
 {
-    struct Cell **adjLists_head;
+    Cell **adjLists_head;
 } Graph;
-
-typedef struct QueueNode
-{
-    int cell;
-    struct QueueNode *next;
-} QueueNode;
-
-typedef struct Queue
-{
-    QueueNode *front, *rear;
-} Queue;
 
 // Function prototypes
 Graph *CreateGraph();
 Cell *Addcell(int cell);
-Cell *Addedge(int cell1, Cell *x);
-Cell *Deletecell(int cell1, Cell *x);
+Cell *Addedge(int cell1, Cell *head);
+Cell *Deletecell(int cell1, Cell *head);
+Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray);
 Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray);
+
+// Queue functions
 Queue *createQueue();
 void enqueue(Queue *q, int cell);
 int dequeue(Queue *q);
 
-    int getHeight(Cell *c);
-int getBalance(Cell *c);
-Cell *rightRotation(Cell *y);
-Cell *leftRotation(Cell *x);
+// Helper functions for nodes retrieval
+void getNodesFromList(Cell *head, int *nodes, int *count);
 
-
-void getNodesFromAVL(Cell *root, int *nodes, int *count) ;
+// DFS functions for topological sort and cycle detection
+void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *resultIndex, int *hasCycle);
 int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle);
-extern Formula *formulaArray;
-void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray);
-void AddFormula(Graph *graph, int cell, int c1, int c2, int op_type,Formula *formulaArray);
-Cell *Deleteedge(Graph *graph, int cell, int COLS,Formula *formulaArray);
 
+// Operation functions
+void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray);
+void AddFormula(Graph *graph, int cell, int c1, int c2, int op_type, Formula *formulaArray);
+
+// Helper functions
 int min2(int a, int b);
 int max2(int a, int b);
-void printAVLTree(Cell *root, int level);
-void printCellDependencies(Graph *graph, int cell);
+int arithmetic_eval2(int v1, int v2, char op);
 
-// Add this if arithmetic evaluation or square root is defined elsewhere
+// External variables
+extern int hasCycle;
 
 #endif // GRAPH_H

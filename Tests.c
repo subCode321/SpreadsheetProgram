@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <limits.h>
-
+#include "Graph.h"
+#include "Graph.c"
+#include "Parser.c"
+#include "Functions.c"
 // Define NUM_CELLS before including Graph.h and Graph.c
 int NUM_CELLS = 100;
 
-#include "Graph.h"
-#include "Graph.c"
 
 // Mock variable for the external hasCycle
 int hasCycle = 0;
@@ -399,10 +400,202 @@ void test_Recalc()
     free(graph->adjLists_head);
     free(graph);
 }
+// New test function for cell_parser
+void test_cell_parser()
+{
+    printf("Testing cell_parser function...\n");
 
+    Graph *graph = CreateGraph();
+    int C = 26;  // Columns A-Z
+    int R = 100; // Rows 1-100
+
+    // Test valid cell references
+    assert(cell_parser("A1", C, R, 0, 1, graph) == 0);
+    assert(cell_parser("Z100", C, R, 0, 3, graph) == 2599);
+
+    // Test invalid cell references
+    assert(cell_parser("AA1", C, R, 0, 2, graph) == -1);
+    assert(cell_parser("A101", C, R, 0, 3, graph) == -1);
+    assert(cell_parser("1A", C, R, 0, 1, graph) == -1);
+
+    printf("cell_parser tests passed!\n");
+    free(graph->adjLists_head);
+    free(graph);
+}
+
+// New test function for valuefunc
+void test_valuefunc()
+{
+    printf("Testing valuefunc function...\n");
+
+    Graph *graph = CreateGraph();
+    Formula formulaArray[NUM_CELLS];
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    int C = 26;  // Columns A-Z
+    int R = 100; // Rows 1-100
+
+    // Test constant assignment
+    char input1[] = "A1=42";
+    valuefunc(input1, C, R, 2, 5, arr, graph, formulaArray);
+    assert(arr[0] == 42);
+
+    // Test cell reference
+    char input2[] = "B1=A1";
+    valuefunc(input2, C, R, 2, 5, arr, graph, formulaArray);
+    assert(arr[1] == 42);
+
+    // Test negative value
+    char input3[] = "C1=-10";
+    valuefunc(input3, C, R, 2, 6, arr, graph, formulaArray);
+    assert(arr[2] == -10);
+
+    printf("valuefunc tests passed!\n");
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+}
+
+// New test function for arth_op
+void test_arth_op()
+{
+    printf("Testing arth_op function...\n");
+
+    Graph *graph = CreateGraph();
+    Formula formulaArray[NUM_CELLS];
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    int C = 26;  // Columns A-Z
+    int R = 100; // Rows 1-100
+
+    // Set up initial values
+    arr[0] = 10; // A1 = 10
+    arr[1] = 5; // B1 = 5
+
+    // Test addition
+    char input1[] = "C1=A1+B1";
+    arth_op(input1, C, R, 2, 8, arr, graph, formulaArray);
+    assert(arr[2] == 15);
+
+    // Test subtraction
+    char input2[] = "D1=A1-B1";
+    arth_op(input2, C, R, 2, 8, arr, graph, formulaArray);
+    assert(arr[3] == 5);
+
+    // Test multiplication
+    char input3[] = "E1=A1*B1";
+    arth_op(input3, C, R, 2, 8, arr, graph, formulaArray);
+    assert(arr[4] == 50);
+
+    // Test division
+    char input4[] = "F1=A1/B1";
+    arth_op(input4, C, R, 2, 8, arr, graph, formulaArray);
+    assert(arr[5] == 2);
+
+    printf("arth_op tests passed!\n");
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+}
+// Implement the new test functions
+void test_min_func()
+{
+    Graph *graph = CreateGraph();
+    int arr[9] = {5, 2, 8, 1, 9, 3, 7, 4, 6};
+    Formula formulaArray[9];
+    char input[] = "C3=MIN(A1:B2)"; // Avoids self-cycle
+    int C = 3, R = 3;
+    int pos_equalto = 2;
+    int pos_end = strlen(input);
+
+    min_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
+
+    assert(arr[8] == 1); // C2 (row-major order)
+    printf("test_min_func passed\n");
+}
+
+void test_max_func()
+{
+    Graph *graph = CreateGraph();
+    int arr[9] = {5, 2, 8, 1, 9, 3, 7, 4, 6};
+    Formula formulaArray[1];
+    char input[] = "C3=MAX(A1:B2)"; // Avoids self-cycle
+    int C = 3, R = 3;
+    int pos_equalto = 2;
+    int pos_end = strlen(input);
+
+    maxfunc(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
+
+    assert(arr[8] == 9); // C2 (row-major order)
+    printf("test_max_func passed\n");
+}
+
+void test_avg_func()
+{
+    Graph *graph = CreateGraph();
+    int arr[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    Formula formulaArray[1];
+    char input[] = "C3=AVG(A1:B2)"; // Avoids self-cycle
+    int C = 3, R = 3;
+    int pos_equalto = 2;
+    int pos_end = strlen(input);
+
+    avg_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
+
+    assert(arr[8] == 3); // C2 (row-major order, avg of [1,2,4,5])
+    printf("test_avg_func passed\n");
+}
+
+void test_sum_func()
+{
+    Graph *graph = CreateGraph();
+    int arr[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    Formula formulaArray[1];
+    char input[] = "C3=SUM(A1:B2)"; // Avoids self-cycle
+    int C = 3, R = 3;
+    int pos_equalto = 2;
+    int pos_end = strlen(input);
+
+    sum_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
+
+    assert(arr[8] == 12); // C2 (row-major order, sum of [1,2,4,5])
+    printf("test_sum_func passed\n");
+}
+
+void test_stdev_func()
+{
+    Graph *graph = CreateGraph();
+    int arr[9] = {2, 4, 4, 4, 5, 5, 7, 9, 6};
+    Formula formulaArray[1];
+    char input[] = "C3=STDEV(A1:B2)"; // Avoids self-cycle
+    int C = 3, R = 3;
+    int pos_equalto = 2;
+    int pos_end = strlen(input);
+
+    stdev_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
+
+    assert(arr[8] == 1); // Approximate std deviation of [2,4,4,5] rounded
+    printf("test_stdev_func passed\n");
+}
+
+void test_sleep_func()
+{
+    Graph graph;
+    int arr[9] = {0};
+    Formula formulaArray[1];
+    char input[] = "C3=SLEEP(1)"; // No self-cycle issue here
+    int C = 3, R = 3;
+    int pos_equalto = 2;
+    int pos_end = strlen(input);
+
+    sleep_func(input, C, R, pos_equalto, pos_end, arr, &graph, formulaArray);
+
+    assert(arr[8] == 1); // C2 (row-major order)
+    printf("test_sleep_func passed\n");
+}
+
+// Update the main function to include new tests
 int main()
 {
-    printf("Running unit tests for Graph.c...\n");
+    printf("Running unit tests for Graph.c, Parser.c, and Functions.c...\n");
 
     test_utility_functions();
     test_AddFormula();
@@ -411,6 +604,19 @@ int main()
     test_formula_edge_operations();
     test_Recalc();
 
-    printf("\nAll tests for Graph.c passed!\n");
+    // Tests for Parser.c
+    test_cell_parser();
+    test_valuefunc();
+    test_arth_op();
+
+    // New tests for Functions.c
+    test_min_func();
+    test_max_func();
+    test_avg_func();
+    test_sum_func();
+    test_stdev_func();
+    test_sleep_func();
+
+    printf("\nAll tests for Graph.c, Parser.c, and Functions.c passed!\n");
     return 0;
 }

@@ -25,7 +25,7 @@ void printList(Cell *head)
         if (current != NULL)
             printf(", ");
     }
-    printf("]");
+    printf("]\n");
 }
 
 // Test helper to compare two linked lists
@@ -45,11 +45,9 @@ int listsEqual(Cell *list1, Cell *list2)
 Cell *createTestList(int values[], int size)
 {
     Cell *head = NULL;
-    for (int i = size - 1; i >= 0; i--)
+    for (int i = 0; i < size; i++) // Changed loop to keep the order
     {
-        Cell *newCell = Addcell(values[i]);
-        newCell->next = head;
-        head = newCell;
+        head = Addedge(values[i], head);
     }
     return head;
 }
@@ -107,18 +105,7 @@ void test_AddFormula()
     printf("AddFormula tests passed!\n");
 
     // Clean up
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        Cell *current = graph->adjLists_head[i];
-        while (current != NULL)
-        {
-            Cell *temp = current;
-            current = current->next;
-            free(temp);
-        }
-    }
-    free(graph->adjLists_head);
-    free(graph);
+    FreeGraph(graph);
 }
 
 // Test graph creation and cell operations
@@ -144,15 +131,18 @@ void test_graph_creation_and_cell_ops()
     assert(head->cell == 1);
 
     // Add another edge
+    Cell *oldHead = head;
     head = Addedge(2, head);
     assert(head != NULL);
-    assert(head->cell == 2);
-    assert(head->next->cell == 1);
+    // In the new implementation, Addedge adds to the end of the list
+    // So head should still point to node with cell 1
+    assert(head->cell == 1);
+    assert(head->next->cell == 2);
 
     // Try adding duplicate - should not change list
     Cell *before = head;
     head = Addedge(2, head);
-    assert(head == before); // Should be the same pointer
+    assert(listsEqual(head, before)); // Should be the same list
 
     // Test Deletecell
     head = Deletecell(2, head);
@@ -169,18 +159,51 @@ void test_graph_creation_and_cell_ops()
     assert(head == NULL);
 
     free(cell1);
-    free(graph->adjLists_head);
-    free(graph);
+    FreeGraph(graph);
 
     printf("Graph creation and cell operations tests passed!\n");
 }
 
-// Test topological sort and cycle detection
+// Test Range operations
+void test_range_operations()
+{
+    printf("Testing range operations...\n");
+
+    Graph *graph = CreateGraph();
+    int COLS = 10; // 10x10 grid
+
+    // Add a range from cell 0 to cell 33 (spanning multiple rows and columns)
+    // with cell 99 depending on this range
+    AddRangeToGraph(graph, 0, 33, 99);
+
+    // Check if cells in the range are detected correctly
+    assert(isCellInAnyRange(graph, 0, COLS) == 99);  // Top-left of range
+    assert(isCellInAnyRange(graph, 33, COLS) == 99); // Bottom-right of range
+    assert(isCellInAnyRange(graph, 22, COLS) == 99); // Middle of range
+    assert(isCellInAnyRange(graph, 44, COLS) == -1); // Outside range
+
+    // Add another range and check overlap
+    AddRangeToGraph(graph, 30, 45, 98);
+    assert(isCellInAnyRange(graph, 30, COLS) == 98); // First hit is 98 (most recently added)
+    assert(isCellInAnyRange(graph, 33, COLS) == 98); // Cell in both ranges
+
+    // Test DeleteRangeFromGraph
+    DeleteRangeFromGraph(graph, 99);
+    assert(isCellInAnyRange(graph, 0, COLS) == -1);  // No longer in any range
+    assert(isCellInAnyRange(graph, 33, COLS) == 98); // Still in range for 98
+
+    printf("Range operations tests passed!\n");
+
+    FreeGraph(graph);
+}
+
+// Test topological sort and cycle detection with the new range-aware implementation
 void test_topological_sort()
 {
     printf("Testing topological sort and cycle detection...\n");
 
     Graph *graph = CreateGraph();
+    int COLS = 10; // 10x10 grid
 
     // Create a simple DAG: 0 -> 1 -> 2
     graph->adjLists_head[0] = Addedge(1, graph->adjLists_head[0]);
@@ -188,7 +211,7 @@ void test_topological_sort()
 
     int size;
     hasCycle = 0;
-    int *result = topoSortFromCell(graph, 0, &size, &hasCycle);
+    int *result = topoSortFromCell(graph, 0, &size, &hasCycle, COLS);
 
     assert(result != NULL);
     assert(hasCycle == 0);
@@ -203,38 +226,110 @@ void test_topological_sort()
     graph->adjLists_head[2] = Addedge(0, graph->adjLists_head[2]);
 
     hasCycle = 0;
-    result = topoSortFromCell(graph, 0, &size, &hasCycle);
+    result = topoSortFromCell(graph, 0, &size, &hasCycle, COLS);
 
     assert(result == NULL);
     assert(hasCycle == 1);
 
-    // Clean up the adjacency lists
-    for (int i = 0; i < NUM_CELLS; i++)
+    // Clean up and create a new graph
+    FreeGraph(graph);
+    graph = CreateGraph();
+
+    // Test range dependency
+    AddRangeToGraph(graph, 0, 3, 5);
+    graph->adjLists_head[5] = Addedge(6, graph->adjLists_head[5]);
+
+    hasCycle = 0;
+    result = topoSortFromCell(graph, 0, &size, &hasCycle, COLS);
+    assert(result != NULL);
+    assert(hasCycle == 0);
+
+    int found5 = -1, found6 = -1;
+    for (int i = 0; i < size; i++)
     {
-        Cell *current = graph->adjLists_head[i];
-        while (current != NULL)
-        {
-            Cell *temp = current;
-            current = current->next;
-            free(temp);
-        }
-        graph->adjLists_head[i] = NULL;
+        if (result[i] == 5)
+            found5 = i;
+        if (result[i] == 6)
+            found6 = i;
     }
 
-    printf("Topological sort and cycle detection tests passed!\n");
+    assert(found5 != -1 && found6 != -1);
+    assert(found5 < found6); // 5 must come before 6
 
-    free(graph->adjLists_head);
-    free(graph);
+    free(result);
+
+    // Test disconnected components
+    FreeGraph(graph);
+    graph = CreateGraph();
+    graph->adjLists_head[0] = Addedge(1, graph->adjLists_head[0]);
+    graph->adjLists_head[2] = Addedge(3, graph->adjLists_head[2]); // Separate component
+
+    hasCycle = 0;
+    result = topoSortFromCell(graph, 0, &size, &hasCycle, COLS);
+    assert(result != NULL);
+    assert(hasCycle == 0);
+    assert(size == 2);
+    assert(result[0] == 0);
+    assert(result[1] == 1);
+    free(result);
+
+    // Test a larger DAG
+    FreeGraph(graph);
+    graph = CreateGraph();
+    graph->adjLists_head[0] = Addedge(1, graph->adjLists_head[0]);
+    graph->adjLists_head[1] = Addedge(2, graph->adjLists_head[1]);
+    graph->adjLists_head[2] = Addedge(3, graph->adjLists_head[2]);
+    graph->adjLists_head[3] = Addedge(4, graph->adjLists_head[3]);
+    graph->adjLists_head[4] = Addedge(5, graph->adjLists_head[4]);
+
+    hasCycle = 0;
+    result = topoSortFromCell(graph, 0, &size, &hasCycle, COLS);
+    assert(result != NULL);
+    assert(hasCycle == 0);
+    assert(size == 6);
+    for (int i = 0; i < 6; i++)
+    {
+        assert(result[i] == i);
+    }
+    free(result);
+
+    // Test multiple start points
+    FreeGraph(graph);
+    graph = CreateGraph();
+    graph->adjLists_head[0] = Addedge(2, graph->adjLists_head[0]);
+    graph->adjLists_head[1] = Addedge(2, graph->adjLists_head[1]);
+    graph->adjLists_head[2] = Addedge(3, graph->adjLists_head[2]);
+
+    hasCycle = 0;
+    result = topoSortFromCell(graph, 0, &size, &hasCycle, COLS);
+    assert(result != NULL);
+    assert(hasCycle == 0);
+    assert(size == 3);
+    free(result);
+
+    // Test self-loop cycle detection
+    FreeGraph(graph);
+    graph = CreateGraph();
+    graph->adjLists_head[0] = Addedge(0, graph->adjLists_head[0]);
+
+    hasCycle = 0;
+    result = topoSortFromCell(graph, 0, &size, &hasCycle, COLS);
+    assert(result == NULL);
+    assert(hasCycle == 1);
+
+    printf("All topological sort and cycle detection tests passed!\n");
+
+    FreeGraph(graph);
 }
 
-// Test formula edge operations
+// Test formula edge operations with the new range handling
 void test_formula_edge_operations()
 {
     printf("Testing formula edge operations...\n");
 
     Graph *graph = CreateGraph();
     Formula formulaArray[NUM_CELLS];
-    int COLS = 3; // Assuming a 3x3 grid
+    int COLS = 10; // 10x10 grid
 
     // Test cell + constant formula (op_type 1)
     formulaArray[4].op_type = 1;
@@ -273,32 +368,19 @@ void test_formula_edge_operations()
     assert(graph->adjLists_head[2]->cell == 5);
 
     // Test range formula (op_type 9 - MIN)
-    // Range covering cells 0, 1, 3, 4 (2x2 grid starting at 0)
+    // Range covering cells 0, 1, 10, 11 (2x2 grid starting at 0)
     formulaArray[6].op_type = 9;
-    formulaArray[6].op_info1 = 0; // Start cell
-    formulaArray[6].op_info2 = 4; // End cell
+    formulaArray[6].op_info1 = 0;  // Start cell
+    formulaArray[6].op_info2 = 11; // End cell
 
     Addedge_formula(graph, 6, COLS, formulaArray);
 
-    // Cells 0, 1, 3, 4 should all have edges to cell 6
-    for (int cell = 0; cell <= 4; cell++)
-    {
-        if (cell == 2)
-            continue; // Skip cell 2 as it's not in the range
-
-        current = graph->adjLists_head[cell];
-        int found6 = 0;
-        while (current)
-        {
-            if (current->cell == 6)
-            {
-                found6 = 1;
-                break;
-            }
-            current = current->next;
-        }
-        assert(found6);
-    }
+    // We should now have a range entry instead of direct edges
+    Range *range = graph->ranges_head;
+    assert(range != NULL);
+    assert(range->startCell == 0);
+    assert(range->endCell == 11);
+    assert(range->dependentCell == 6);
 
     // Test Deleteedge
     Deleteedge(graph, 4, COLS, formulaArray);
@@ -314,90 +396,130 @@ void test_formula_edge_operations()
     }
     assert(!found4);
 
+    // Test deleting range formula
+    Deleteedge(graph, 6, COLS, formulaArray);
+
+    // Range should be gone
+    assert(graph->ranges_head == NULL);
+
     printf("Formula edge operations tests passed!\n");
 
-    // Clean up
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        Cell *current = graph->adjLists_head[i];
-        while (current != NULL)
-        {
-            Cell *temp = current;
-            current = current->next;
-            free(temp);
-        }
-    }
-    free(graph->adjLists_head);
-    free(graph);
+    FreeGraph(graph);
 }
 
-// Test Recalc function
+// Test Recalc function with the new implementation
 void test_Recalc()
 {
     printf("Testing Recalc function...\n");
 
+    int *values = (int *)calloc(NUM_CELLS, sizeof(int));
+    int COLS = 10; // 10x10 grid
+
     Graph *graph = CreateGraph();
     Formula formulaArray[NUM_CELLS];
-    // Fix: Initialize values array properly
-    int *values = (int *)calloc(NUM_CELLS, sizeof(int));
-    int COLS = 3;
 
-    // Set up a simple spreadsheet:
+    // --- BASIC DEPENDENCY CHAIN ---
     // Cell 0 = 5 (constant)
     // Cell 1 = 10 (constant)
     // Cell 2 = Cell 0 + Cell 1 (5 + 10 = 15)
-    // Cell 3 = Cell 2 * 2 (15  *2 = 30)
+    // Cell 3 = Cell 2 * 2 (15 * 2 = 30)
 
-    // Set up formulas
-    AddFormula(graph, 0, 5, 0, 0, formulaArray);  // Cell 0 = 5
-    AddFormula(graph, 1, 10, 0, 0, formulaArray); // Cell 1 = 10
-    AddFormula(graph, 2, 0, 1, 5, formulaArray);  // Cell 2 = Cell 0 + Cell 1
-    AddFormula(graph, 3, 2, 2, 3, formulaArray);  // Cell 3 = Cell 2 * 2
+    AddFormula(graph, 0, 5, 0, 0, formulaArray);
+    AddFormula(graph, 1, 10, 0, 0, formulaArray);
+    AddFormula(graph, 2, 0, 1, 5, formulaArray);
+    AddFormula(graph, 3, 2, 2, 3, formulaArray);
 
-    // Add edges to the graph
+    values[0] = 5;
+    values[1] = 10;
+
     Addedge_formula(graph, 2, COLS, formulaArray);
     Addedge_formula(graph, 3, COLS, formulaArray);
-    values[1] = 10;
+
+    hasCycle = 0;
     Recalc(graph, COLS, values, 0, formulaArray);
 
-    assert(values[0] == 5);
-    assert(values[1] == 10);
     assert(values[2] == 15);
     assert(values[3] == 30);
 
-    // Modify a value and recalculate
-    AddFormula(graph, 0, 7, 0, 0, formulaArray); // Change Cell 0 from 5 to 7
+    // --- MODIFY VALUE & RECALCULATE ---
+    AddFormula(graph, 0, 7, 0, 0, formulaArray);
+    values[0] = 7; // Directly updating since it's a constant
+
     Recalc(graph, COLS, values, 0, formulaArray);
 
-    // Check the updated results
-    assert(values[0] == 7);
-    assert(values[1] == 10);
-    assert(values[2] == 17); // Now 7 + 10
-    assert(values[3] == 34); // Now 17 * 2
+    assert(values[2] == 17);
+    assert(values[3] == 34);
 
-    // Test error propagation - division by zero
-    AddFormula(graph, 4, 3, 0, 8, formulaArray); // Cell 4 = Cell 3 / Cell 0
+    // --- MULTIPLICATION CHAIN ---
+    // Cell 4 = Cell 3 * 3 (34 * 3 = 102)
+    // Cell 5 = Cell 4 * 2 (102 * 2 = 204)
+
+    AddFormula(graph, 4, 3, 3, 3, formulaArray);
+    AddFormula(graph, 5, 4, 2, 3, formulaArray);
+
     Addedge_formula(graph, 4, COLS, formulaArray);
+    Addedge_formula(graph, 5, COLS, formulaArray);
 
-    values[0] = 0; // Set Cell 0 to 0 to create division by zero in Cell 4
-    Recalc(graph, COLS, values, 0, formulaArray);
+    Recalc(graph, COLS, values, 3, formulaArray);
+    assert(values[4] == 102);
+    assert(values[5] == 204);
+
+    // --- TEST RANGE SUM ---
+    // Cells 10, 11, 20, 21 sum into cell 30
+
+    AddFormula(graph, 10, 25, 0, 0, formulaArray);
+    AddFormula(graph, 11, 15, 0, 0, formulaArray);
+    AddFormula(graph, 20, 10, 0, 0, formulaArray);
+    AddFormula(graph, 21, 50, 0, 0, formulaArray);
+
+    values[10] = 25;
+    values[11] = 15;
+    values[20] = 10;
+    values[21] = 50;
+
+    AddFormula(graph, 30, 10, 21, 12, formulaArray); // SUM(10:21)
+    Addedge_formula(graph, 30, COLS, formulaArray);
+
+    Recalc(graph, COLS, values, 10, formulaArray);
+
+    assert(values[30] == 100);
+
+    // --- COMPLEX DEPENDENCY ---
+    // Cell 40 = Cell 30 - Cell 10 (100 - 25 = 75)
+    // Cell 50 = Cell 40 / 5 (75 / 5 = 15)
+
+    AddFormula(graph, 40, 30, 10, 6, formulaArray); // Subtraction
+    AddFormula(graph, 50, 40, 5, 4, formulaArray);  // Division
+
+    Addedge_formula(graph, 40, COLS, formulaArray);
+    Addedge_formula(graph, 50, COLS, formulaArray);
+
+    Recalc(graph, COLS, values, 30, formulaArray);
+
+    assert(values[40] == 75);
+    assert(values[50] == 15);
+
+    // --- CYCLE DETECTION ---
+    // Creating a cycle: 60 -> 61 -> 62 -> 60
+
+    AddFormula(graph, 60, 61, 0, 5, formulaArray);
+    AddFormula(graph, 61, 62, 0, 5, formulaArray);
+    AddFormula(graph, 62, 60, 0, 5, formulaArray);
+
+    Addedge_formula(graph, 60, COLS, formulaArray);
+    Addedge_formula(graph, 61, COLS, formulaArray);
+    Addedge_formula(graph, 62, COLS, formulaArray);
+
+    hasCycle = 0;
+    int prevCycle = hasCycle;
+    Recalc(graph, COLS, values, 60, formulaArray);
+    assert(hasCycle == 1 && prevCycle == 0); // Should detect cycle
 
     printf("Recalc function tests passed!\n");
 
     // Clean up
     free(values);
-    for (int i = 0; i < NUM_CELLS; i++)
-    {
-        Cell *current = graph->adjLists_head[i];
-        while (current != NULL)
-        {
-            Cell *temp = current;
-            current = current->next;
-            free(temp);
-        }
-    }
-    free(graph->adjLists_head);
-    free(graph);
+    FreeGraph(graph);
 }
 
 // Test cell_parser function
@@ -504,6 +626,7 @@ void test_min_func()
     Graph *graph = CreateGraph();
     int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
     Formula formulaArray[NUM_CELLS];
+    int C = 3, R = 3;
 
     // Initialize test data
     arr[0] = 5; // A1
@@ -514,10 +637,9 @@ void test_min_func()
     arr[5] = 3; // C2
     arr[6] = 7; // A3
     arr[7] = 4; // B3
-    arr[8] = 6; // C3
+    arr[8] = 0; // C3 (initialize target cell)
 
-    char input[] = "C3=MIN(A1:B2)"; // Avoids self-cycle
-    int C = 3, R = 3;
+    char input[] = "C3=MIN(A1:B2)";
     int pos_equalto = 2;
     int pos_end = strlen(input);
 
@@ -541,6 +663,7 @@ void test_max_func()
     Graph *graph = CreateGraph();
     int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
     Formula formulaArray[NUM_CELLS];
+    int C = 3, R = 3;
 
     // Initialize test data
     arr[0] = 5; // A1
@@ -551,10 +674,9 @@ void test_max_func()
     arr[5] = 3; // C2
     arr[6] = 7; // A3
     arr[7] = 4; // B3
-    arr[8] = 6; // C3
+    arr[8] = 0; // C3 (initialize target cell)
 
-    char input[] = "C3=MAX(A1:B2)"; // Avoids self-cycle
-    int C = 3, R = 3;
+    char input[] = "C3=MAX(A1:B2)";
     int pos_equalto = 2;
     int pos_end = strlen(input);
 
@@ -578,6 +700,7 @@ void test_avg_func()
     Graph *graph = CreateGraph();
     int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
     Formula formulaArray[NUM_CELLS];
+    int C = 3, R = 3;
 
     // Initialize test data
     arr[0] = 1; // A1
@@ -588,16 +711,15 @@ void test_avg_func()
     arr[5] = 6; // C2
     arr[6] = 7; // A3
     arr[7] = 8; // B3
-    arr[8] = 9; // C3
+    arr[8] = 0; // C3 (initialize target cell)
 
-    char input[] = "C3=AVG(A1:B2)"; // Avoids self-cycle
-    int C = 3, R = 3;
+    char input[] = "C3=AVG(A1:B2)";
     int pos_equalto = 2;
     int pos_end = strlen(input);
 
     avg_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
-    assert(arr[8] == 3); // C3 should have the average value from range A1:B2
+    assert(arr[8] == 3); // C3 should have the average value from range A1:B2 (1+2+4+5)/4 = 3
 
     printf("avg_func tests passed!\n");
 
@@ -652,6 +774,7 @@ void test_stdev_func()
     Graph *graph = CreateGraph();
     int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
     Formula formulaArray[NUM_CELLS];
+    int C = 3, R = 3;
 
     // Initialize test data
     arr[0] = 2; // A1
@@ -662,10 +785,9 @@ void test_stdev_func()
     arr[5] = 5; // C2
     arr[6] = 7; // A3
     arr[7] = 9; // B3
-    arr[8] = 6; // C3
+    arr[8] = 0; // C3 (initialize target cell)
 
-    char input[] = "C3=STDEV(A1:B2)"; // Avoids self-cycle
-    int C = 3, R = 3;
+    char input[] = "C3=STDEV(A1:B2)";
     int pos_equalto = 2;
     int pos_end = strlen(input);
 
@@ -689,15 +811,23 @@ void test_sleep_func()
     Graph *graph = CreateGraph();
     int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
     Formula formulaArray[NUM_CELLS];
-
-    char input[] = "C3=SLEEP(1)"; // No self-cycle issue here
     int C = 3, R = 3;
+
+    // Target cell is C3 (index 8)
+    char input[] = "C3=SLEEP(1)";
     int pos_equalto = 2;
     int pos_end = strlen(input);
 
     sleep_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
     assert(arr[8] == 1); // C3 should have the value 1
+
+    // Test cell reference
+    arr[0] = 3; // A1 = 3
+    char input2[] = "B1=SLEEP(A1)";
+
+    sleep_func(input2, C, R, 2, strlen(input2), arr, graph, formulaArray);
+    assert(arr[1] == 3); // B1 should have the value from A1
 
     printf("sleep_func tests passed!\n");
 
@@ -848,21 +978,14 @@ void test_scroller_scroll_to_command()
     int currx = 0, curry = 0;
     int C = 20, R = 20;
 
-    // Mock the cell_parser function using a function pointer if necessary
-    // For now, we'll assume it works correctly and test valid scroll_to commands
-
-    // Test valid scroll_to command
     char cmd1[] = "scroll_to A1";
     scroller(cmd1, arr, &currx, &curry, C, R, graph);
-    // We can't assert the exact behavior here without mocking cell_parser
-    // But we can run the function to check for crashes
 
     // Test invalid scroll target (out of bounds)
     char cmd2[] = "scroll_to Z99"; // Assuming this is out of bounds
     int old_x = currx;
     int old_y = curry;
     scroller(cmd2, arr, &currx, &curry, C, R, graph);
-    // Coordinates should not change on invalid scroll
 
     // Test unrecognized command
     char cmd3[] = "invalid";

@@ -1,6 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 #include "Graph.h"
+#include "Functions.h"
 
 int cell_parser(char *a, int C, int R, int start, int end, Graph *graph);
 int valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray);

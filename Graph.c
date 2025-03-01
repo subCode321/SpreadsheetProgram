@@ -470,7 +470,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle, C);
     if (hasCycle)
     {
-        printf("Error: Circular dependency detected. Command rejected.\n");
+        // printf("Error: Circular dependency detected. Command rejected.\n");
         free(sortedCells);
         return;
     }
@@ -503,7 +503,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
 
             if (v1 == INT_MIN)
             {
-                printf("  Error: Cell %d has invalid operand (v1 is INT_MIN)\n", f.op_info1);
+                // printf("  Error: Cell %d has invalid operand (v1 is INT_MIN)\n", f.op_info1);
                 arr[cell] = INT_MIN;
                 continue;
             }
@@ -673,6 +673,32 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
             arr[cell] = sleep_value;
             break;
         }
+        case 15: //CELL=CONSTANT/CELL
+        {
+            int v1 = f.op_info1;
+            int v2 = arr[f.op_info2];
+
+            if (v2 == INT_MIN)
+            {
+                // printf("  Error: Cell %d has invalid operand (v1 is INT_MIN)\n", f.op_info1);
+                arr[cell] = INT_MIN;
+                continue;
+            }
+
+            char op = (f.op_type == 1) ? '+' : (f.op_type == 2) ? '-'
+                                           : (f.op_type == 3)   ? '*'
+                                                                : '/';
+
+            if (op == '/' && v2 == 0)
+            {
+                arr[cell] = INT_MIN;
+                continue;
+            }
+
+            arr[cell] = arithmetic_eval2(v1, v2, op);
+            break;
+        }
+
 
         default:
             // Handle unknown operation type

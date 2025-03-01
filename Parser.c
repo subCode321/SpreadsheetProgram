@@ -683,7 +683,12 @@ int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph
         res = arithmetic_eval(second_cell, arr[third_cell], operation);
         arr[first_cell] = res;
         graph->adjLists_head[third_cell] = Addedge(first_cell, graph->adjLists_head[third_cell]);
-        AddFormula(graph, first_cell, third_cell, second_cell, return_optype(operation),formulaArray);
+        if(return_optype(operation)==4){
+            AddFormula(graph, first_cell, second_cell, third_cell, 15,formulaArray);
+        }
+        else{
+            AddFormula(graph, first_cell, third_cell, second_cell, return_optype(operation), formulaArray);
+        }
     }
     else
     { // cell op cell

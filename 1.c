@@ -8,6 +8,7 @@
 #include <sys/time.h>
 
 int NUM_CELLS;
+int hasCycle;
 Formula *formulaArray;
 
 
@@ -123,7 +124,12 @@ int main(int argc, char *argv[])
         }
         else
         {
-            printf("[%.6f] (unrecognized command) ", time_taken);
+            if(hasCycle){
+                printf("[%.6f] (Circular dependency detected) ", time_taken);
+            }
+            else{
+                printf("[%.6f] (unrecognized command) ", time_taken);
+            }
         }
     }
 

@@ -210,7 +210,8 @@ void getNodesFromList(Cell *head, int *nodes, int *count)
     }
 }
 
-void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *resultIndex, int *hasCycleLocal)
+// DFS function for topological sort
+void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *resultIndex, int *hasCycle)
 {
     visited[cell] = onStack[cell] = 1;
 
@@ -219,17 +220,13 @@ void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *r
         int dependent = current->cell;
         if (!visited[dependent])
         {
-            dfs(graph, dependent, visited, onStack, result, resultIndex, hasCycleLocal);
-            if (*hasCycleLocal)
-            {
-                hasCycle = 1; // Update extern variable
+            dfs(graph, dependent, visited, onStack, result, resultIndex, hasCycle);
+            if (*hasCycle)
                 return;
-            }
         }
         else if (onStack[dependent])
         {
-            *hasCycleLocal = 1;
-            hasCycle = 1; // Update extern variable
+            *hasCycle = 1;
             return;
         }
     }
@@ -237,12 +234,10 @@ void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *r
     onStack[cell] = 0;
     result[(*resultIndex)++] = cell;
 }
-int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycleLocal)
-{
-    *size = 0;
-    *hasCycleLocal = 0;
-    hasCycle = 0; // Reset the extern variable
 
+int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
+{
+    *size = *hasCycle = 0;
     int *result = (int *)malloc(NUM_CELLS * sizeof(int));
     if (!result)
         return NULL;
@@ -258,12 +253,12 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycleLocal
     }
 
     int resultIndex = 0;
-    dfs(graph, startCell, visited, onStack, result, &resultIndex, hasCycleLocal);
+    dfs(graph, startCell, visited, onStack, result, &resultIndex, hasCycle);
 
     free(visited);
     free(onStack);
 
-    if (*hasCycleLocal)
+    if (*hasCycle)
     {
         free(result);
         return NULL;
@@ -287,7 +282,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
     int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
     if (!sortedCells)
     {
-        hasCycle = 1;
         printf("Error: Circular dependency detected. Command rejected.\n");
         return;
     }

@@ -60,7 +60,11 @@ int main(int argc, char *argv[])
     {
         // Always show prompt regardless of output state
         printf("> ");
-        fgets(a, 100, stdin);
+        if (fgets(a, 100, stdin) == NULL)
+        {
+            // Handle error (optional)
+        }
+
         a[strcspn(a, "\n")] = '\0';
 
         if (a[0] == 'q' && a[1] == '\0')

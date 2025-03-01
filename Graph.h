@@ -52,11 +52,6 @@ Cell *Deletecell(int cell1, Cell *head);
 Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray);
 Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray);
 
-// Queue functions
-Queue *createQueue();
-void enqueue(Queue *q, int cell);
-int dequeue(Queue *q);
-
 // Helper functions for nodes retrieval
 void getNodesFromList(Cell *head, int *nodes, int *count);
 

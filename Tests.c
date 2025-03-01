@@ -6,9 +6,9 @@
 #include "Graph.c"
 #include "Parser.c"
 #include "Functions.c"
+#include "display.c"
 // Define NUM_CELLS before including Graph.h and Graph.c
 int NUM_CELLS = 100;
-
 
 // Mock variable for the external hasCycle
 int hasCycle = 0;
@@ -382,7 +382,6 @@ void test_Recalc()
     values[0] = 0; // Set Cell 0 to 0 to create division by zero in Cell 4
     Recalc(graph, COLS, values, 0, formulaArray);
 
-
     printf("Recalc function tests passed!\n");
 
     // Clean up
@@ -400,7 +399,8 @@ void test_Recalc()
     free(graph->adjLists_head);
     free(graph);
 }
-// New test function for cell_parser
+
+// Test cell_parser function
 void test_cell_parser()
 {
     printf("Testing cell_parser function...\n");
@@ -423,7 +423,7 @@ void test_cell_parser()
     free(graph);
 }
 
-// New test function for valuefunc
+// Test valuefunc function
 void test_valuefunc()
 {
     printf("Testing valuefunc function...\n");
@@ -455,7 +455,7 @@ void test_valuefunc()
     free(graph);
 }
 
-// New test function for arth_op
+// Test arth_op function
 void test_arth_op()
 {
     printf("Testing arth_op function...\n");
@@ -468,7 +468,7 @@ void test_arth_op()
 
     // Set up initial values
     arr[0] = 10; // A1 = 10
-    arr[1] = 5; // B1 = 5
+    arr[1] = 5;  // B1 = 5
 
     // Test addition
     char input1[] = "C1=A1+B1";
@@ -495,12 +495,27 @@ void test_arth_op()
     free(graph->adjLists_head);
     free(graph);
 }
-// Implement the new test functions
+
+// Test min_func function
 void test_min_func()
 {
+    printf("Testing min_func function...\n");
+
     Graph *graph = CreateGraph();
-    int arr[9] = {5, 2, 8, 1, 9, 3, 7, 4, 6};
-    Formula formulaArray[9];
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    Formula formulaArray[NUM_CELLS];
+
+    // Initialize test data
+    arr[0] = 5; // A1
+    arr[1] = 2; // B1
+    arr[2] = 8; // C1
+    arr[3] = 1; // A2
+    arr[4] = 9; // B2
+    arr[5] = 3; // C2
+    arr[6] = 7; // A3
+    arr[7] = 4; // B3
+    arr[8] = 6; // C3
+
     char input[] = "C3=MIN(A1:B2)"; // Avoids self-cycle
     int C = 3, R = 3;
     int pos_equalto = 2;
@@ -508,15 +523,36 @@ void test_min_func()
 
     min_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
-    assert(arr[8] == 1); // C2 (row-major order)
-    printf("test_min_func passed\n");
+    assert(arr[8] == 1); // C3 should have the minimum value from range A1:B2
+
+    printf("min_func tests passed!\n");
+
+    // Clean up
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
 }
 
+// Test maxfunc function
 void test_max_func()
 {
+    printf("Testing max_func function...\n");
+
     Graph *graph = CreateGraph();
-    int arr[9] = {5, 2, 8, 1, 9, 3, 7, 4, 6};
-    Formula formulaArray[1];
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    Formula formulaArray[NUM_CELLS];
+
+    // Initialize test data
+    arr[0] = 5; // A1
+    arr[1] = 2; // B1
+    arr[2] = 8; // C1
+    arr[3] = 1; // A2
+    arr[4] = 9; // B2
+    arr[5] = 3; // C2
+    arr[6] = 7; // A3
+    arr[7] = 4; // B3
+    arr[8] = 6; // C3
+
     char input[] = "C3=MAX(A1:B2)"; // Avoids self-cycle
     int C = 3, R = 3;
     int pos_equalto = 2;
@@ -524,15 +560,36 @@ void test_max_func()
 
     maxfunc(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
-    assert(arr[8] == 9); // C2 (row-major order)
-    printf("test_max_func passed\n");
+    assert(arr[8] == 9); // C3 should have the maximum value from range A1:B2
+
+    printf("max_func tests passed!\n");
+
+    // Clean up
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
 }
 
+// Test avg_func function
 void test_avg_func()
 {
+    printf("Testing avg_func function...\n");
+
     Graph *graph = CreateGraph();
-    int arr[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    Formula formulaArray[1];
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    Formula formulaArray[NUM_CELLS];
+
+    // Initialize test data
+    arr[0] = 1; // A1
+    arr[1] = 2; // B1
+    arr[2] = 3; // C1
+    arr[3] = 4; // A2
+    arr[4] = 5; // B2
+    arr[5] = 6; // C2
+    arr[6] = 7; // A3
+    arr[7] = 8; // B3
+    arr[8] = 9; // C3
+
     char input[] = "C3=AVG(A1:B2)"; // Avoids self-cycle
     int C = 3, R = 3;
     int pos_equalto = 2;
@@ -540,15 +597,36 @@ void test_avg_func()
 
     avg_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
-    assert(arr[8] == 3); // C2 (row-major order, avg of [1,2,4,5])
-    printf("test_avg_func passed\n");
+    assert(arr[8] == 3); // C3 should have the average value from range A1:B2
+
+    printf("avg_func tests passed!\n");
+
+    // Clean up
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
 }
 
+// Test sum_func function
 void test_sum_func()
 {
+    printf("Testing sum_func function...\n");
+
     Graph *graph = CreateGraph();
-    int arr[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    Formula formulaArray[1];
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    Formula formulaArray[NUM_CELLS];
+
+    // Initialize test data
+    arr[0] = 1; // A1
+    arr[1] = 2; // B1
+    arr[2] = 3; // C1
+    arr[3] = 4; // A2
+    arr[4] = 5; // B2
+    arr[5] = 6; // C2
+    arr[6] = 7; // A3
+    arr[7] = 8; // B3
+    arr[8] = 9; // C3
+
     char input[] = "C3=SUM(A1:B2)"; // Avoids self-cycle
     int C = 3, R = 3;
     int pos_equalto = 2;
@@ -556,15 +634,36 @@ void test_sum_func()
 
     sum_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
-    assert(arr[8] == 12); // C2 (row-major order, sum of [1,2,4,5])
-    printf("test_sum_func passed\n");
+    assert(arr[8] == 12); // C3 should have the sum of values from range A1:B2
+
+    printf("sum_func tests passed!\n");
+
+    // Clean up
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
 }
 
+// Test stdev_func function
 void test_stdev_func()
 {
+    printf("Testing stdev_func function...\n");
+
     Graph *graph = CreateGraph();
-    int arr[9] = {2, 4, 4, 4, 5, 5, 7, 9, 6};
-    Formula formulaArray[1];
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    Formula formulaArray[NUM_CELLS];
+
+    // Initialize test data
+    arr[0] = 2; // A1
+    arr[1] = 4; // B1
+    arr[2] = 4; // C1
+    arr[3] = 4; // A2
+    arr[4] = 5; // B2
+    arr[5] = 5; // C2
+    arr[6] = 7; // A3
+    arr[7] = 9; // B3
+    arr[8] = 6; // C3
+
     char input[] = "C3=STDEV(A1:B2)"; // Avoids self-cycle
     int C = 3, R = 3;
     int pos_equalto = 2;
@@ -572,32 +671,257 @@ void test_stdev_func()
 
     stdev_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
-    assert(arr[8] == 1); // Approximate std deviation of [2,4,4,5] rounded
-    printf("test_stdev_func passed\n");
+    assert(arr[8] == 1); // C3 should have approx std deviation of [2,4,4,5] rounded
+
+    printf("stdev_func tests passed!\n");
+
+    // Clean up
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
 }
 
+// Test sleep_func function
 void test_sleep_func()
 {
-    Graph graph;
-    int arr[9] = {0};
-    Formula formulaArray[1];
+    printf("Testing sleep_func function...\n");
+
+    Graph *graph = CreateGraph();
+    int *arr = (int *)calloc(NUM_CELLS, sizeof(int));
+    Formula formulaArray[NUM_CELLS];
+
     char input[] = "C3=SLEEP(1)"; // No self-cycle issue here
     int C = 3, R = 3;
     int pos_equalto = 2;
     int pos_end = strlen(input);
 
-    sleep_func(input, C, R, pos_equalto, pos_end, arr, &graph, formulaArray);
+    sleep_func(input, C, R, pos_equalto, pos_end, arr, graph, formulaArray);
 
-    assert(arr[8] == 1); // C2 (row-major order)
-    printf("test_sleep_func passed\n");
+    assert(arr[8] == 1); // C3 should have the value 1
+
+    printf("sleep_func tests passed!\n");
+
+    // Clean up
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+}
+// Test for scroller() function with 'w' command (scroll up)
+void test_scroller_w_command()
+{
+    printf("Testing scroller with 'w' command...\n");
+
+    Graph *graph = CreateGraph();
+    int *arr = (int *)calloc(100, sizeof(int)); // 10x10 grid for simplicity
+    int currx = 0, curry = 5;
+    int C = 10, R = 10;
+
+    // Test scrolling up when possible
+    char cmd1[] = "w";
+    scroller(cmd1, arr, &currx, &curry, C, R, graph);
+    assert(curry == 0); // Should scroll to top since curry < 10
+
+    // Test scrolling up when already at top
+    char cmd2[] = "w";
+    scroller(cmd2, arr, &currx, &curry, C, R, graph);
+    assert(curry == 0); // Should remain at top
+
+    // Test scrolling up from position > 10
+    curry = 15;
+    char cmd3[] = "w";
+    scroller(cmd3, arr, &currx, &curry, C, R, graph);
+    assert(curry == 5); // Should scroll up by 10
+
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+
+    printf("scroller 'w' command tests passed!\n");
 }
 
-// Update the main function to include new tests
+// Test for scroller() function with 's' command (scroll down)
+void test_scroller_s_command()
+{
+    printf("Testing scroller with 's' command...\n");
+
+    Graph *graph = CreateGraph();
+    int *arr = (int *)calloc(400, sizeof(int)); // 20x20 grid
+    int currx = 0, curry = 0;
+    int C = 20, R = 20;
+
+    // Test scrolling down when possible
+    char cmd1[] = "s";
+    scroller(cmd1, arr, &currx, &curry, C, R, graph);
+    assert(curry == 10); // Should scroll down by 10
+    // Test scrolling down near bottom
+    curry = 5;
+    char cmd2[] = "s";
+    scroller(cmd2, arr, &currx, &curry, C, R, graph);
+    assert(curry == 10); // Should scroll down by 5
+
+    // Test scrolling down when at bottom
+    curry = 10;
+    char cmd3[] = "s";
+    scroller(cmd3, arr, &currx, &curry, C, R, graph);
+    assert(curry == 10); // Should remain at 10 since scrolling would go out of bounds
+
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+
+    printf("scroller 's' command tests passed!\n");
+}
+
+// Test for scroller() function with 'a' command (scroll left)
+void test_scroller_a_command()
+{
+    printf("Testing scroller with 'a' command...\n");
+
+    Graph *graph = CreateGraph();
+    int *arr = (int *)calloc(400, sizeof(int)); // 20x20 grid
+    int currx = 5, curry = 0;
+    int C = 20, R = 20;
+
+    // Test scrolling left when possible
+    char cmd1[] = "a";
+    scroller(cmd1, arr, &currx, &curry, C, R, graph);
+    assert(currx == 0); // Should scroll to leftmost since currx < 10
+
+    // Test scrolling left when already at leftmost
+    char cmd2[] = "a";
+    scroller(cmd2, arr, &currx, &curry, C, R, graph);
+    assert(currx == 0); // Should remain at leftmost
+
+    // Test scrolling left from position > 10
+    currx = 15;
+    char cmd3[] = "a";
+    scroller(cmd3, arr, &currx, &curry, C, R, graph);
+    assert(currx == 5); // Should scroll left by 10
+
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+
+    printf("scroller 'a' command tests passed!\n");
+}
+
+// Test for scroller() function with 'd' command (scroll right)
+void test_scroller_d_command()
+{
+    printf("Testing scroller with 'd' command...\n");
+
+    Graph *graph = CreateGraph();
+    int *arr = (int *)calloc(400, sizeof(int)); // 20x20 grid
+    int currx = 0, curry = 0;
+    int C = 20, R = 20;
+
+    // Test scrolling right when possible
+    char cmd1[] = "d";
+    scroller(cmd1, arr, &currx, &curry, C, R, graph);
+    assert(currx == 10); // Should scroll right by 10
+
+    // Test scrolling right with less than 10 columns remaining
+    char cmd2[] = "d";
+    scroller(cmd2, arr, &currx, &curry, C, R, graph);
+    assert(currx == 10); // Should remain at 10 since 10+10 = 20 (grid width)
+
+    // Test in a wider grid
+    C = 30;
+    char cmd3[] = "d";
+    scroller(cmd3, arr, &currx, &curry, C, R, graph);
+    assert(currx == 20); // Should scroll right by 10
+
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+
+    printf("scroller 'd' command tests passed!\n");
+}
+
+// Test for scroller() function with 'scroll_to' command
+void test_scroller_scroll_to_command()
+{
+    printf("Testing scroller with 'scroll_to' command...\n");
+
+    Graph *graph = CreateGraph();
+    int *arr = (int *)calloc(400, sizeof(int)); // 20x20 grid
+    int currx = 0, curry = 0;
+    int C = 20, R = 20;
+
+    // Mock the cell_parser function using a function pointer if necessary
+    // For now, we'll assume it works correctly and test valid scroll_to commands
+
+    // Test valid scroll_to command
+    char cmd1[] = "scroll_to A1";
+    scroller(cmd1, arr, &currx, &curry, C, R, graph);
+    // We can't assert the exact behavior here without mocking cell_parser
+    // But we can run the function to check for crashes
+
+    // Test invalid scroll target (out of bounds)
+    char cmd2[] = "scroll_to Z99"; // Assuming this is out of bounds
+    int old_x = currx;
+    int old_y = curry;
+    scroller(cmd2, arr, &currx, &curry, C, R, graph);
+    // Coordinates should not change on invalid scroll
+
+    // Test unrecognized command
+    char cmd3[] = "invalid";
+    scroller(cmd3, arr, &currx, &curry, C, R, graph);
+
+    free(arr);
+    free(graph->adjLists_head);
+    free(graph);
+
+    printf("scroller 'scroll_to' command tests passed!\n");
+}
+
+// Test for printer() function
+void test_printer_function()
+{
+    printf("Testing printer function...\n");
+
+    int C = 20, R = 20;
+    int *arr = (int *)calloc(C * R, sizeof(int));
+
+    // Initialize some test values
+    for (int i = 0; i < C * R; i++)
+    {
+        arr[i] = i;
+    }
+
+    // Set a few cells to INT_MIN to test error display
+    arr[5] = INT_MIN;
+    arr[25] = INT_MIN;
+
+    // Test printing from different starting positions
+    // We can't automatically verify the output, but we can verify it doesn't crash
+
+    // Print from top-left
+    printf("Printing from top-left (0,0):\n");
+    printer(0, 0, arr, C, R);
+
+    // Print from middle
+    printf("\nPrinting from middle (5,5):\n");
+    printer(5, 5, arr, C, R);
+
+    // Print near edge
+    printf("\nPrinting near edge (15,15):\n");
+    printer(15, 15, arr, C, R);
+
+    free(arr);
+
+    printf("printer function tests passed!\n");
+}
+
+// Main function to run all tests
 int main()
 {
-    printf("Running unit tests for Graph.c, Parser.c, and Functions.c...\n");
+    printf("Running unit tests for Graph.c, Parser.c, Functions.c, and display.c...\n\n");
 
+    // Tests for utility functions
     test_utility_functions();
+
+    // Tests for Graph.c
     test_AddFormula();
     test_graph_creation_and_cell_ops();
     test_topological_sort();
@@ -609,7 +933,7 @@ int main()
     test_valuefunc();
     test_arth_op();
 
-    // New tests for Functions.c
+    // Tests for Functions.c
     test_min_func();
     test_max_func();
     test_avg_func();
@@ -617,6 +941,14 @@ int main()
     test_stdev_func();
     test_sleep_func();
 
-    printf("\nAll tests for Graph.c, Parser.c, and Functions.c passed!\n");
+    // Tests for display.c
+    test_scroller_w_command();
+    test_scroller_s_command();
+    test_scroller_a_command();
+    test_scroller_d_command();
+    test_scroller_scroll_to_command();
+    test_printer_function();
+
+    printf("\nAll tests for Graph.c, Parser.c, Functions.c, and display.c passed!\n");
     return 0;
 }

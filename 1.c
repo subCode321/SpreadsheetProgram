@@ -5,13 +5,16 @@
 #include "Parser.h"
 #include "Graph.h"
 #include "string.h"
+#include <sys/time.h>
 
 int NUM_CELLS;
 Formula *formulaArray;
 
+
 int main(int argc, char *argv[])
 {
-    clock_t start = clock(); // Start timing from the very beginning
+    struct timeval start, end;
+    gettimeofday(&start, NULL); // Start timing from the very beginning
 
     if (argc != 3)
     {
@@ -44,8 +47,8 @@ int main(int argc, char *argv[])
     }
 
     // Print timing and status always
-    clock_t end = clock();
-    double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+    gettimeofday(&end, NULL);
+    double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
     printf("[%.6f] (ok) ", time_taken);
 
     char *a = (char *)malloc(200 * sizeof(char));
@@ -68,23 +71,23 @@ int main(int argc, char *argv[])
             break;
         }
 
-        clock_t start = clock();
+        gettimeofday(&start, NULL);
         int status = 1;
 
         // Handle output control commands
         if (strcmp(a, "disable_output") == 0)
         {
             output_disabled = 1;
-            clock_t end = clock();
-            double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+            gettimeofday(&end, NULL);
+            double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
             printf("[%.6f] (ok) ", time_taken);
             continue;
         }
         else if (strcmp(a, "enable_output") == 0)
         {
             output_disabled = 0;
-            clock_t end = clock();
-            double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+            gettimeofday(&end, NULL);
+            double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
             printer(currx, curry, arr, C, R);
             printf("[%.6f] (ok) ", time_taken);
             continue;
@@ -104,8 +107,8 @@ int main(int argc, char *argv[])
             status = parser(a, C, R, arr, graph, formulaArray);
         }
 
-        clock_t end = clock();
-        double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+        gettimeofday(&end, NULL);
+        double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
 
         // Only display spreadsheet if output is not disabled
         if (!output_disabled)

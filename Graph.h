@@ -1,79 +1,46 @@
 #ifndef GRAPH_H
 #define GRAPH_H
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <math.h>
-
 extern int NUM_CELLS;
 
-// Structure for a cell in the adjacency list
+// Cell structure for adjacency list
 typedef struct Cell
 {
     int cell;
     struct Cell *next;
 } Cell;
 
-// Queue node structure for BFS
-typedef struct QueueNode
+// Range structure to store range endpoints
+typedef struct Range
 {
-    int cell;
-    struct QueueNode *next;
-} QueueNode;
+    int startCell;
+    int endCell;
+    int dependentCell;
+    struct Range *next;
+} Range;
 
-// Queue structure
-typedef struct Queue
+// Graph structure
+typedef struct
 {
-    QueueNode *front;
-    QueueNode *rear;
-} Queue;
+    Cell **adjLists_head;
+    Range *ranges_head; // New field to store ranges
+} Graph;
 
-// Formula structure to represent different types of operations
-typedef struct Formula
+// Formula structure
+typedef struct
 {
     int op_type;
     int op_info1;
     int op_info2;
 } Formula;
 
-// Graph structure holding the adjacency list
-typedef struct Graph
-{
-    Cell **adjLists_head;
-} Graph;
-
-// Function prototypes
+// Graph operations
 Graph *CreateGraph();
-Cell *Addcell(int cell);
-Cell *Addedge(int cell1, Cell *head);
-Cell *Deletecell(int cell1, Cell *head);
-Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray);
+void FreeGraph(Graph *graph);
 Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray);
-
-// Queue functions
-Queue *createQueue();
-void enqueue(Queue *q, int cell);
-int dequeue(Queue *q);
-
-// Helper functions for nodes retrieval
-void getNodesFromList(Cell *head, int *nodes, int *count);
-
-// DFS functions for topological sort and cycle detection
-void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *resultIndex, int *hasCycle);
-int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle);
-
-// Operation functions
+Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray);
 void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray);
 void AddFormula(Graph *graph, int cell, int c1, int c2, int op_type, Formula *formulaArray);
-void FreeGraph(Graph *graph);
-    // Helper functions
-int min2(int a, int b);
-int max2(int a, int b);
-int arithmetic_eval2(int v1, int v2, char op);
-
-// External variables
-extern int hasCycle;
-
+Cell *Addedge(int cell1, Cell *head);
+void AddRangeToGraph(Graph *graph, int startCell, int endCell, int dependentCell);
+void DeleteRangeFromGraph(Graph *graph, int dependentCell);
 #endif // GRAPH_H

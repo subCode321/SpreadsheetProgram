@@ -126,14 +126,14 @@ int cell_parser(char *a, int C, int R, int start, int end, Graph *graph)
 //     }
 
 // }
-void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+int valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell;
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
-        printf("Invalid cell\n");
-        return;
+        // printf("Invalid cell\n");
+        return -1;
     }
     old_value = arr[first_cell];
     old_op_type = formulaArray[first_cell].op_type;
@@ -178,8 +178,8 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
 
     if (second_cell == -1)
     {
-        printf("Invalid cell\n");
-        return;
+        
+        return -1;
     }
 
     if (is_negative && !is_cell) // If it's a negative constant
@@ -220,8 +220,10 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
         formulaArray[first_cell].op_info2 = old_op_info2;
 
         Addedge_formula(graph, first_cell, C, formulaArray);
+        return -1;
     }
     // printf("%d %d\n", first_cell, second_cell);
+    return 1;
 }
 
 // void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph *graph)
@@ -436,7 +438,7 @@ void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
 //         Recalc(graph, C, arr, first_cell);
 //     }
 // }
-void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell, second_cell, third_cell;
     int res = 0;
@@ -463,8 +465,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
 
     if (opindex == -1)
     {
-        printf("Invalid command\n");
-        return;
+        return -1;
     }
 
     // Parse first operand
@@ -610,8 +611,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
 
     if (notvalid || (!is1cell && !is1num) || (!is2cell && !is2num))
     {
-        printf("Invalid command\n");
-        return;
+        return -1;
     }
 
     // Convert first operand
@@ -620,9 +620,8 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         second_cell = cell_parser(cell1, C, R, 0, l1 - 1, graph);
         if (second_cell == -1)
         {
-            printf("%s", cell1);
-            printf("Invalid cell reference\n");
-            return;
+    
+            return -1;
         }
     }
     else
@@ -638,8 +637,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         if (third_cell == -1)
         {
             // printf("%s", cell2);
-            printf("Invalid cell reference\n");
-            return;
+            return -1;
         }
     }
     else
@@ -652,8 +650,7 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
-        printf("Invalid cell reference\n");
-        return;
+        return -1;
     }
 
     old_value = arr[first_cell];
@@ -708,7 +705,9 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         formulaArray[first_cell].op_info2 = old_op_info2;
 
         Addedge_formula(graph, first_cell, C, formulaArray);
+        return -1;
     }
+    return 1;
 }
 // void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph) {
 //     // Parse destination cell (e.g., "A1")
@@ -799,15 +798,15 @@ void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
 //     printf("first %d\nsecond %d\n%c\n%d\n", operand1_value, operand2_value, op, res);
 // }
 
-void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+int funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell;
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
 
     if (first_cell == -1)
     {
-        printf("Invalid cell");
-        return;
+        // printf("Invalid cell");
+        return -1;
     }
     old_value = arr[first_cell];
     old_op_type = formulaArray[first_cell].op_type;
@@ -824,8 +823,8 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
 
     if (!open_paren1 || !close_paren1 || close_paren1 <= open_paren1 + 1)
     {
-        printf("Invalid range: Missing or misplaced parentheses\n");
-        return;
+        // printf("Invalid range: Missing or misplaced parentheses\n");
+        return -1;
     }
 
     int idx_open = open_paren1 - a;
@@ -871,12 +870,14 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
         }
         else
         {
-            printf("Invalid function\n");
+            // printf("Invalid function\n");
+            return -1;
         }
     }
     else
     {
-        printf("Invalid function\n");
+        // printf("Invalid function\n");
+        return -1;
     }
     if (hasCycle)
     {
@@ -888,6 +889,7 @@ void funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph 
         formulaArray[first_cell].op_info2 = old_op_info2;
 
         Addedge_formula(graph, first_cell, C, formulaArray);
+        return -1;
     }
 }
 
@@ -951,17 +953,26 @@ int parser(char *a, int C, int R, int *arr, Graph *graph,Formula *formulaArray)
 
     if (value == 1)
     {
-        valuefunc(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+        int checker = valuefunc(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+        if(checker == -1){
+            return -1;
+        }
         // printf("Hello");
     }
     else if (arth_exp == 1)
     {
-        arth_op(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+        int checker = arth_op(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+        if(checker == -1){
+            return -1;
+        }
     }
     else if (func == 1)
     {
 
-        funct(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+        int checker = funct(a, C, R, pos_equalto, pos_end, arr, graph,formulaArray);
+        if(checker == -1){
+            return -1;
+        }
     }
 
     if (value == 1 || func == 1 || arth_exp == 1)
@@ -970,7 +981,7 @@ int parser(char *a, int C, int R, int *arr, Graph *graph,Formula *formulaArray)
     }
     else
     {
-        return 0;
+        return -1;
     }
 }
 

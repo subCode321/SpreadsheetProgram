@@ -8,72 +8,37 @@
 
 extern int hasCycle;
 
+// Inline simple functions for better performance
 int min2(int a, int b)
 {
-    if (a < b)
-        return a;
-    return b;
+    return (a < b) ? a : b;
 }
 
 int max2(int a, int b)
 {
-    if (a > b)
-        return a;
-    return b;
+    return (a > b) ? a : b;
 }
 
 int arithmetic_eval2(int v1, int v2, char op)
 {
-    if (op == '+')
+    switch (op)
     {
+    case '+':
         return v1 + v2;
-    }
-
-    else if (op == '-')
-    {
+    case '-':
         return v1 - v2;
-    }
-
-    else if (op == '*')
-    {
+    case '*':
         return v1 * v2;
-    }
-
-    else if (op == '/')
-    {
+    case '/':
         return v1 / v2;
+    default:
+        return INT_MIN;
     }
-    return INT_MIN;
 }
-
-/*
-FORMULA                         OPTYPE
-CELL=CONSTANT                       0
-CELL=CELL+CONSTANT                  1
-CELL=CELL-CONSTANT                  2
-CELL=CELL*CONSTANT                  3
-CELL=CELL/CONSTANT                  4
-CELL=CELL+CELL                      5
-CELL=CELL-CELL                      6
-CELL=CELL*CELL                      7
-CELL=CELL/CELL                      8
-CELL=MIN(RANGE)                     9
-CELL=MAX(RANGE)                     10
-CELL=AVG(RANGE)                     11
-CELL=SUM(RANGE)                     12
-CELL=STDEV(RANGE)                   13
-CELL=SLEEP(CONSTANT)                14
-CELL=SLEEP(CELL)                    15
-*/
 
 void AddFormula(Graph *graph, int cell, int c1, int c2, int op_type, Formula *formulaArray)
 {
     Formula newFormula;
-    // Assignment               1       Value         NULL
-    // (Const + Const)          2       Value1       Value2
-    // (Cell + Const)           3       Cell1        Value2
-    // (Const + Cell)           4       Value1       Cell2
-    // (Cell + Cell)            5       Cell1        Cell2
     newFormula.op_type = op_type;
     newFormula.op_info1 = -1;
     newFormula.op_info2 = -1;
@@ -104,6 +69,23 @@ Cell *Addcell(int cell)
     return new_cell;
 }
 
+// Create a Range node
+Range *AddRange(int startCell, int endCell, int dependentCell)
+{
+    Range *new_range = (Range *)malloc(sizeof(Range));
+    if (!new_range)
+    {
+        printf("Cannot allocate memory for range\n");
+        return NULL;
+    }
+
+    new_range->startCell = startCell;
+    new_range->endCell = endCell;
+    new_range->dependentCell = dependentCell;
+    new_range->next = NULL;
+    return new_range;
+}
+
 Graph *CreateGraph()
 {
     Graph *graph = (Graph *)malloc(sizeof(Graph));
@@ -113,7 +95,7 @@ Graph *CreateGraph()
         return NULL;
     }
 
-    graph->adjLists_head = (Cell **)malloc(NUM_CELLS * sizeof(Cell *));
+    graph->adjLists_head = (Cell **)calloc(NUM_CELLS, sizeof(Cell *));
     if (!graph->adjLists_head)
     {
         printf("Cannot allocate memory for adjacency lists\n");
@@ -121,29 +103,55 @@ Graph *CreateGraph()
         return NULL;
     }
 
-    memset(graph->adjLists_head, 0, NUM_CELLS * sizeof(Cell *));
+    // Initialize range list
+    graph->ranges_head = NULL;
+
     return graph;
 }
 
 // Add an edge to the linked list
 Cell *Addedge(int cell1, Cell *head)
 {
+    // Fast path if list is empty
+    if (head == NULL)
+    {
+        return Addcell(cell1);
+    }
+
+    // Fast path if cell1 should be at the beginning
+    if (head->cell == cell1)
+    {
+        return head; // Cell already exists, no need to add
+    }
+
     // Check if the cell already exists in the list
     Cell *current = head;
-    while (current != NULL)
+    while (current->next != NULL)
     {
-        if (current->cell == cell1)
+        if (current->next->cell == cell1)
             return head; // Cell already exists, no need to add
         current = current->next;
     }
 
-    // Add new cell at the beginning of the list
+    // Add new cell at the end of the list for better cache locality
     Cell *new_cell = Addcell(cell1);
     if (new_cell == NULL)
         return head;
 
-    new_cell->next = head;
-    return new_cell;
+    current->next = new_cell;
+    return head;
+}
+
+// Add a range to the range list
+void AddRangeToGraph(Graph *graph, int startCell, int endCell, int dependentCell)
+{
+    Range *new_range = AddRange(startCell, endCell, dependentCell);
+    if (!new_range)
+        return;
+
+    // Add to the beginning of the list for simplicity
+    new_range->next = graph->ranges_head;
+    graph->ranges_head = new_range;
 }
 
 // Delete a specific cell from the linked list
@@ -181,6 +189,40 @@ Cell *Deletecell(int cell1, Cell *head)
     return head;
 }
 
+// Delete range from the range list
+void DeleteRangeFromGraph(Graph *graph, int dependentCell)
+{
+    Range *current = graph->ranges_head;
+    Range *prev = NULL;
+
+    while (current != NULL)
+    {
+        if (current->dependentCell == dependentCell)
+        {
+            // Remove this range
+            if (prev == NULL)
+            {
+                // It's the head node
+                graph->ranges_head = current->next;
+                free(current);
+                current = graph->ranges_head;
+            }
+            else
+            {
+                // Middle or end node
+                prev->next = current->next;
+                free(current);
+                current = prev->next;
+            }
+        }
+        else
+        {
+            prev = current;
+            current = current->next;
+        }
+    }
+}
+
 Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray)
 {
     Formula x = formulaArray[cell];
@@ -196,21 +238,8 @@ Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray)
     }
     else if (x.op_type >= 9 && x.op_type <= 13)
     {
-        int startCell = x.op_info1;
-        int endCell = x.op_info2;
-        int startRow = startCell / COLS;
-        int startCol = startCell % COLS;
-        int endRow = endCell / COLS;
-        int endCol = endCell % COLS;
-
-        for (int row = startRow; row <= endRow; ++row)
-        {
-            for (int col = startCol; col <= endCol; ++col)
-            {
-                int targetCell = row * COLS + col;
-                graph->adjLists_head[targetCell] = Deletecell(cell, graph->adjLists_head[targetCell]);
-            }
-        }
+        // For range operations, just delete the range entry
+        DeleteRangeFromGraph(graph, cell);
     }
     return NULL;
 }
@@ -233,64 +262,58 @@ Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray)
     // For operations 9-13 (range operations)
     else if (x.op_type >= 9 && x.op_type <= 13)
     {
+        // Instead of adding edges to every cell in the range,
+        // just store the range information
         int startCell = x.op_info1;
         int endCell = x.op_info2;
+        AddRangeToGraph(graph, startCell, endCell, cell);
+    }
+    return NULL;
+}
+
+// Check if a cell is affected by any ranges
+int isCellInAnyRange(Graph *graph, int cell, int COLS)
+{
+    Range *current = graph->ranges_head;
+
+    while (current != NULL)
+    {
+        int startCell = current->startCell;
+        int endCell = current->endCell;
+
         int startRow = startCell / COLS;
         int startCol = startCell % COLS;
         int endRow = endCell / COLS;
         int endCol = endCell % COLS;
 
-        // Add edges for all cells in the range
-        for (int row = startRow; row <= endRow; ++row)
+        // Optimize by swapping if start > end
+        if (startRow > endRow)
         {
-            for (int col = startCol; col <= endCol; ++col)
-            {
-                int targetCell = row * COLS + col;
-                graph->adjLists_head[targetCell] = Addedge(cell, graph->adjLists_head[targetCell]);
-            }
+            int temp = startRow;
+            startRow = endRow;
+            endRow = temp;
         }
-    }
-    return NULL;
-}
+        if (startCol > endCol)
+        {
+            int temp = startCol;
+            startCol = endCol;
+            endCol = temp;
+        }
 
+        int cellRow = cell / COLS;
+        int cellCol = cell % COLS;
 
-Queue *createQueue()
-{
-    Queue *q = (Queue *)malloc(sizeof(Queue));
-    q->front = q->rear = NULL;
-    return q;
-}
+        // Check if the cell is within the range
+        if (cellRow >= startRow && cellRow <= endRow &&
+            cellCol >= startCol && cellCol <= endCol)
+        {
+            return current->dependentCell;
+        }
 
-void enqueue(Queue *q, int cell)
-{
-    QueueNode *newNode = (QueueNode *)malloc(sizeof(QueueNode));
-    newNode->cell = cell;
-    newNode->next = NULL;
-
-    if (q->rear == NULL)
-    {
-        q->front = q->rear = newNode;
-        return;
+        current = current->next;
     }
 
-    q->rear->next = newNode;
-    q->rear = newNode;
-}
-
-int dequeue(Queue *q)
-{
-    if (q->front == NULL)
-        return -1;
-
-    QueueNode *temp = q->front;
-    int cell = temp->cell;
-
-    q->front = q->front->next;
-    if (q->front == NULL)
-        q->rear = NULL;
-
-    free(temp);
-    return cell;
+    return -1; // Not in any range
 }
 
 // Get nodes from the linked list
@@ -304,28 +327,76 @@ void getNodesFromList(Cell *head, int *nodes, int *count)
     }
 }
 
-// DFS function for topological sort
-void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *resultIndex, int *hasCycle)
+// Modified DFS function for topological sort to consider ranges
+void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *resultIndex, int *hasCycle, int COLS)
 {
+    // Early exit if cycle already detected
+    if (*hasCycle)
+        return;
+
     // Mark the current node as visited and add to recursion stack
     visited[cell] = 1;
     onStack[cell] = 1;
 
-    // Visit all adjacent vertices
-    if (graph->adjLists_head[cell] != NULL)
+    // Visit all adjacent vertices from direct dependencies
+    Cell *current = graph->adjLists_head[cell];
+    while (current != NULL && !(*hasCycle))
     {
-        Cell *current = graph->adjLists_head[cell];
-        while (current != NULL)
-        {
-            int dependent = current->cell;
+        int dependent = current->cell;
 
-            // If not visited, then recursively process it
+        // If not visited, then recursively process it
+        if (!visited[dependent])
+        {
+            dfs(graph, dependent, visited, onStack, result, resultIndex, hasCycle, COLS);
+        }
+        // If already in recursion stack, then there's a cycle
+        else if (onStack[dependent])
+        {
+            *hasCycle = 1;
+            return;
+        }
+
+        current = current->next;
+    }
+
+    // Check if this cell is part of any range and add dependencies
+    Range *range = graph->ranges_head;
+    while (range != NULL && !(*hasCycle))
+    {
+        int startCell = range->startCell;
+        int endCell = range->endCell;
+        int dependent = range->dependentCell;
+
+        int startRow = startCell / COLS;
+        int startCol = startCell % COLS;
+        int endRow = endCell / COLS;
+        int endCol = endCell % COLS;
+
+        // Optimize by swapping if start > end
+        if (startRow > endRow)
+        {
+            int temp = startRow;
+            startRow = endRow;
+            endRow = temp;
+        }
+        if (startCol > endCol)
+        {
+            int temp = startCol;
+            startCol = endCol;
+            endCol = temp;
+        }
+
+        int cellRow = cell / COLS;
+        int cellCol = cell % COLS;
+
+        // Check if the cell is within the range
+        if (cellRow >= startRow && cellRow <= endRow &&
+            cellCol >= startCol && cellCol <= endCol)
+        {
+            // If dependent is not visited, recursively process it
             if (!visited[dependent])
             {
-                dfs(graph, dependent, visited, onStack, result, resultIndex, hasCycle);
-                // If cycle was detected, return immediately
-                if (*hasCycle)
-                    return;
+                dfs(graph, dependent, visited, onStack, result, resultIndex, hasCycle, COLS);
             }
             // If already in recursion stack, then there's a cycle
             else if (onStack[dependent])
@@ -333,9 +404,9 @@ void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *r
                 *hasCycle = 1;
                 return;
             }
-
-            current = current->next;
         }
+
+        range = range->next;
     }
 
     // Remove from recursion stack and add to result
@@ -344,7 +415,7 @@ void dfs(Graph *graph, int cell, int *visited, int *onStack, int *result, int *r
 }
 
 // Replace BFS with DFS for topological sort
-int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
+int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle, int COLS)
 {
     *size = 0;
     *hasCycle = 0;
@@ -353,10 +424,24 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
     int *result = (int *)malloc(NUM_CELLS * sizeof(int));
     int *visited = (int *)calloc(NUM_CELLS, sizeof(int));
     int *onStack = (int *)calloc(NUM_CELLS, sizeof(int));
+
+    if (!result || !visited || !onStack)
+    {
+        // Handle memory allocation failure
+        if (result)
+            free(result);
+        if (visited)
+            free(visited);
+        if (onStack)
+            free(onStack);
+        *hasCycle = 1; // Use hasCycle to indicate error
+        return NULL;
+    }
+
     int resultIndex = 0;
 
     // Perform DFS starting from the startCell
-    dfs(graph, startCell, visited, onStack, result, &resultIndex, hasCycle);
+    dfs(graph, startCell, visited, onStack, result, &resultIndex, hasCycle, COLS);
 
     free(visited);
     free(onStack);
@@ -382,7 +467,7 @@ int *topoSortFromCell(Graph *graph, int startCell, int *size, int *hasCycle)
 void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
 {
     int size;
-    int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle);
+    int *sortedCells = topoSortFromCell(graph, startCell, &size, &hasCycle, C);
     if (hasCycle)
     {
         printf("Error: Circular dependency detected. Command rejected.\n");
@@ -390,30 +475,28 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
         return;
     }
 
+    // Initialize all affected cells to 0
     for (int i = 0; i < size; i++)
     {
         arr[sortedCells[i]] = 0;
     }
 
+    // Process cells in topological order
     for (int i = 0; i < size; i++)
     {
         int cell = sortedCells[i];
         Formula f = formulaArray[cell];
 
-        if (f.op_type == 0)
+        switch (f.op_type)
         {
-            if (f.op_info1 == INT_MIN)
-            {
-                printf("  Error: Cell %d has an invalid constant value (INT_MIN)\n", cell);
-                arr[cell] = INT_MIN; // Propagate error
-            }
-            else
-            {
-                arr[cell] = f.op_info1; // Assign valid value
-            }
-        }
+        case 0: // CELL=CONSTANT
+            arr[cell] = (f.op_info1 == INT_MIN) ? (printf("  Error: Cell %d has an invalid constant value (INT_MIN)\n", cell), INT_MIN) : f.op_info1;
+            break;
 
-        else if (f.op_type >= 1 && f.op_type <= 4) // Cell and constant case
+        case 1: // CELL=CELL+CONSTANT
+        case 2: // CELL=CELL-CONSTANT
+        case 3: // CELL=CELL*CONSTANT
+        case 4: // CELL=CELL/CONSTANT
         {
             int v1 = arr[f.op_info1];
             int v2 = f.op_info2;
@@ -421,7 +504,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
             if (v1 == INT_MIN)
             {
                 printf("  Error: Cell %d has invalid operand (v1 is INT_MIN)\n", f.op_info1);
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
 
@@ -431,28 +514,32 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
 
             if (op == '/' && v2 == 0)
             {
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
 
-            arr[cell] = arithmetic_eval2(v1, v2, op); // Perform operation
+            arr[cell] = arithmetic_eval2(v1, v2, op);
+            break;
         }
 
-        else if (f.op_type >= 5 && f.op_type <= 8) // Cell and cell case
+        case 5: // CELL=CELL+CELL
+        case 6: // CELL=CELL-CELL
+        case 7: // CELL=CELL*CELL
+        case 8: // CELL=CELL/CELL
         {
             int v1 = arr[f.op_info1];
             int v2 = arr[f.op_info2];
 
-            if (f.op_type == 8 && v2 == 0)
-            {
-                arr[cell] = INT_MIN; // Mark this cell as error
-                continue;
-            }
-
             if (v1 == INT_MIN || v2 == INT_MIN)
             {
                 printf("  Error: One of the operands for cell %d is INT_MIN\n", cell);
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
+                continue;
+            }
+
+            if (f.op_type == 8 && v2 == 0)
+            {
+                arr[cell] = INT_MIN;
                 continue;
             }
 
@@ -460,9 +547,14 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
                                            : (f.op_type == 7)   ? '*'
                                                                 : '/';
             arr[cell] = arithmetic_eval2(v1, v2, op);
+            break;
         }
 
-        else if (f.op_type >= 9 && f.op_type <= 13) // Range operations
+        case 9:  // CELL=MIN(RANGE)
+        case 10: // CELL=MAX(RANGE)
+        case 11: // CELL=AVG(RANGE)
+        case 12: // CELL=SUM(RANGE)
+        case 13: // CELL=STDEV(RANGE)
         {
             int startCell = f.op_info1;
             int endCell = f.op_info2;
@@ -472,11 +564,26 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
             int endRow = endCell / C;
             int endCol = endCell % C;
 
-            int sum = 0, count = 0, stdevSquared = 0;
-            int minVal = INT_MAX, maxVal = INT_MIN;
-            int hasError = 0; // Track if any cell in the range has an error
+            // Optimize by swapping if start > end
+            if (startRow > endRow)
+            {
+                int temp = startRow;
+                startRow = endRow;
+                endRow = temp;
+            }
+            if (startCol > endCol)
+            {
+                int temp = startCol;
+                startCol = endCol;
+                endCol = temp;
+            }
 
-            for (int row = startRow; row <= endRow; row++)
+            int sum = 0, count = 0;
+            int minVal = INT_MAX, maxVal = INT_MIN;
+            int hasError = 0;
+
+            // First pass: Calculate sum, min, max and check for errors
+            for (int row = startRow; row <= endRow && !hasError; row++)
             {
                 for (int col = startCol; col <= endCol; col++)
                 {
@@ -491,70 +598,99 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
 
                     sum += val;
                     count++;
-                    if (val < minVal)
-                        minVal = val;
-                    if (val > maxVal)
-                        maxVal = val;
+                    minVal = (val < minVal) ? val : minVal;
+                    maxVal = (val > maxVal) ? val : maxVal;
                 }
-                if (hasError)
-                    break;
             }
 
-            if (hasError)
+            if (hasError || count == 0)
             {
-                arr[cell] = INT_MIN; // Propagate error
+                arr[cell] = INT_MIN;
                 continue;
             }
 
-            double mean = (double)sum / count;
-            for (int row = startRow; row <= endRow; row++)
+            // Handle different range operations
+            switch (f.op_type)
             {
-                for (int col = startCol; col <= endCol; col++)
-                {
-                    int idx = row * C + col;
-                    stdevSquared += (arr[idx] - mean) * (arr[idx] - mean);
-                }
-            }
-
-            if (f.op_type == 9)
+            case 9: // MIN
                 arr[cell] = minVal;
-            else if (f.op_type == 10)
+                break;
+            case 10: // MAX
                 arr[cell] = maxVal;
-            else if (f.op_type == 11)
+                break;
+            case 11: // AVG
                 arr[cell] = sum / count;
-            else if (f.op_type == 12)
+                break;
+            case 12: // SUM
                 arr[cell] = sum;
-            else if (f.op_type == 13)
+                break;
+            case 13: // STDEV
+            {
+                double mean = (double)sum / count;
+                double stdevSquared = 0;
+
+                for (int row = startRow; row <= endRow; row++)
+                {
+                    for (int col = startCol; col <= endCol; col++)
+                    {
+                        int idx = row * C + col;
+                        double diff = arr[idx] - mean;
+                        stdevSquared += diff * diff;
+                    }
+                }
+
                 arr[cell] = sqrt(stdevSquared / count);
+                break;
+            }
+            }
+            break;
         }
 
-        else if (f.op_type == 14) // Handle SLEEP operation
+        case 14: // CELL=SLEEP(CONSTANT) or CELL=SLEEP(CELL)
         {
-            int sleep_value = (f.op_info1 == cell) ? f.op_info2 : arr[f.op_info1];
+            int sleep_value = f.op_info2; // Assuming it's a constant
+
+            // If op_info1 is not the cell itself, it's a reference to another cell
+            if (f.op_info1 != cell)
+            {
+                sleep_value = arr[f.op_info1];
+            }
 
             if (sleep_value == INT_MIN)
             {
                 printf("  Error: Invalid sleep value in cell %d\n", cell);
-                arr[cell] = INT_MIN; // Propagate error
-                continue;
-            }
-            else if (sleep_value <= 0)
-            {
-                arr[cell] = sleep_value;
+                arr[cell] = INT_MIN;
                 continue;
             }
 
-            sleep(sleep_value);      // Perform sleep operation
-            arr[cell] = sleep_value; // Update the cell value
+            if (sleep_value > 0)
+            {
+                // printf("Sleeping for %d seconds...\n", sleep_value);
+                sleep(sleep_value);
+                // printf("Awake!\n");
+            }
+
+            arr[cell] = sleep_value;
+            break;
+        }
+
+        default:
+            // Handle unknown operation type
+            arr[cell] = INT_MIN;
+            printf("  Error: Unknown operation type %d for cell %d\n", f.op_type, cell);
+            break;
         }
     }
+
     free(sortedCells);
 }
+
 void FreeGraph(Graph *graph)
 {
     if (!graph)
         return;
 
+    // Free cell adjacency lists
     for (int i = 0; i < NUM_CELLS; i++)
     {
         Cell *current = graph->adjLists_head[i];
@@ -564,6 +700,15 @@ void FreeGraph(Graph *graph)
             current = current->next;
             free(temp);
         }
+    }
+
+    // Free range list
+    Range *current = graph->ranges_head;
+    while (current)
+    {
+        Range *temp = current;
+        current = current->next;
+        free(temp);
     }
 
     free(graph->adjLists_head);

@@ -73,7 +73,7 @@ int return_optype(char op)
     return INT_MIN;
 }
 
-void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell;
 
@@ -106,7 +106,10 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, first_cell, range_start, range_end, 9,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 9, formulaArray);
+
+    // Add the range to the graph
+    AddRangeToGraph(graph, range_start, range_end, first_cell);
 
     int min_value = arr[range_start];
 
@@ -119,8 +122,6 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     {
         for (int idx = range_start; idx <= range_end; idx++)
         {
-            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
-
             if (arr[idx] < min_value)
             {
                 min_value = arr[idx];
@@ -131,14 +132,9 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     {
         for (int row = start_row; row <= end_row; row++)
         {
-            int col_start = start_col;
-            int col_end = end_col;
-
-            for (int col = col_start; col <= col_end; col++)
+            for (int col = start_col; col <= end_col; col++)
             {
                 int idx = row * C + col;
-                graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
-
                 if (arr[idx] < min_value)
                 {
                     min_value = arr[idx];
@@ -149,7 +145,7 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     arr[first_cell] = min_value;
 }
 
-void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell;
 
@@ -182,7 +178,10 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, first_cell, range_start, range_end, 10,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 10, formulaArray);
+
+    // Add the range to the graph
+    AddRangeToGraph(graph, range_start, range_end, first_cell);
 
     int max_value = arr[range_start];
 
@@ -195,8 +194,6 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     {
         for (int idx = range_start; idx <= range_end; idx++)
         {
-            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
-
             if (arr[idx] > max_value)
             {
                 max_value = arr[idx];
@@ -207,14 +204,10 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     {
         for (int row = start_row; row <= end_row; row++)
         {
-            int col_start = start_col;
-            int col_end = end_col;
 
-            for (int col = col_start; col <= col_end; col++)
+            for (int col = start_col; col <= end_col; col++)
             {
                 int idx = row * C + col;
-                graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
-
                 if (arr[idx] > max_value)
                 {
                     max_value = arr[idx];
@@ -225,7 +218,7 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
     arr[first_cell] = max_value;
 }
 
-void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
@@ -257,7 +250,10 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         printf("Invalid range\n");
         return;
     }
-    AddFormula(graph, first_cell, range_start, range_end, 11,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 11, formulaArray);
+
+    // Add the range to the graph
+    AddRangeToGraph(graph, range_start, range_end, first_cell);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -268,13 +264,10 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
 
     for (int row = start_row; row <= end_row; row++)
     {
-        int col_start = start_col;
-        int col_end = end_col;
 
-        for (int col = col_start; col <= col_end; col++)
+        for (int col = start_col; col <= end_col; col++)
         {
             int idx = row * C + col;
-            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
             sum += arr[idx];
             count++;
         }
@@ -284,7 +277,7 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     arr[first_cell] = avg_value;
 }
 
-void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
@@ -317,32 +310,31 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         return;
     }
 
-    AddFormula(graph, first_cell, range_start, range_end, 12,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 12, formulaArray);
+
+    // Add the range to the graph
+    AddRangeToGraph(graph, range_start, range_end, first_cell);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
     int end_row = range_end / C;
     int end_col = range_end % C;
-
-    // Calculate SUM
+    printf("%d %d %d %d\n", start_row, start_col, end_row, end_col);
     int sum = 0;
 
     for (int row = start_row; row <= end_row; row++)
     {
-        int col_start = start_col;
-        int col_end = end_col;
-
-        for (int col = col_start; col <= col_end; col++)
+        for (int col = start_col; col <= end_col; col++)
         {
             int idx = row * C + col;
-            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
             sum += arr[idx];
+            printf("%d %d %d\n", idx, row, col);
         }
     }
     arr[first_cell] = sum;
 }
 
-void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
@@ -375,7 +367,10 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         return;
     }
 
-    AddFormula(graph,first_cell, range_start, range_end, 13,formulaArray);
+    AddFormula(graph, first_cell, range_start, range_end, 13, formulaArray);
+
+    // Add the range to the graph
+    AddRangeToGraph(graph, range_start, range_end, first_cell);
 
     int start_row = range_start / C;
     int start_col = range_start % C;
@@ -387,14 +382,9 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
 
     for (int row = start_row; row <= end_row; row++)
     {
-        int col_start = start_col;
-        int col_end = end_col;
-
-        for (int col = col_start; col <= col_end; col++)
+        for (int col = start_col; col <= end_col; col++)
         {
             int idx = row * C + col;
-            graph->adjLists_head[idx] = Addedge(first_cell, graph->adjLists_head[idx]);
-
             sum += arr[idx];
             count++;
         }
@@ -403,10 +393,7 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     int stdev_squared = 0;
     for (int row = start_row; row <= end_row; row++)
     {
-        int col_start = start_col;
-        int col_end = end_col;
-
-        for (int col = col_start; col <= col_end; col++)
+        for (int col = start_col; col <= end_col; col++)
         {
             int idx = row * C + col;
             int prod = (arr[idx] - avg) * (arr[idx] - avg);
@@ -417,7 +404,7 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     arr[first_cell] = stdev;
 }
 
-void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
+void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int target_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (target_cell == -1)
@@ -456,8 +443,8 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         if (*end_ptr != ')' || sleep_value <= 0)
         {
             // printf("here1\n");
-            //printf("SLEEP value must evaluate to a positive integer\n");
-            arr[target_cell] = sleep_value; 
+            // printf("SLEEP value must evaluate to a positive integer\n");
+            arr[target_cell] = sleep_value;
             // printf("%d", ref_cell);
             AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
             return;
@@ -468,7 +455,7 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     {
         // printf("here2\n");
         // printf("SLEEP value must evaluate to a positive integer\n");
-        arr[target_cell] = sleep_value; 
+        arr[target_cell] = sleep_value;
         AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
         return;
     }

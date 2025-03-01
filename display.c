@@ -29,10 +29,11 @@ void printer(int currx, int curry, int *arr, int C, int R)
     for (int i = 0; i < (C - currx < 10 ? C - currx : 10); i++)
     {
         int val = currx + i + 1;
-        char s[5], s2[5];
+        char s[7] = {0}, s2[7] = {0}; // Increased size to prevent overflow
+
         int idx = 0;
 
-        while (val > 0)
+        while (val > 0 && idx < 6) // Prevent overflow
         {
             val--;
             s[idx++] = 'A' + (val % 26);

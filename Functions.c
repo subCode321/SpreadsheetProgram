@@ -73,38 +73,64 @@ int return_optype(char op)
     return INT_MIN;
 }
 
-void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
+int std(int *arr, int n)
+{
+    if (n <= 1)
+        return 0; // Avoid division by zero
+
+    int sum = 0;
+    double variance = 0.0;
+
+    // Calculate mean
+    for (int i = 0; i < n; i++)
+    {
+        sum += arr[i];
+    }
+    int mean = sum / n;
+
+    // Calculate variance
+    for (int i = 0; i < n; i++)
+    {
+        variance += (arr[i] - mean) * (arr[i] - mean);
+    }
+    variance /= n;
+
+    // Return integer standard deviation (rounded)
+    return (int)round(sqrt(variance));
+}
+
+int min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell;
 
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
-        printf("Invalid destination cell\n");
-        return;
+        // printf("Invalid destination cell\n");
+        return -1;
     }
 
     char *open_paren = strchr(a + pos_equalto, '(');
     char *close_paren = strchr(a + pos_equalto, ')');
     if (!open_paren || !close_paren || close_paren <= open_paren + 1)
     {
-        printf("Invalid range: Missing or misplaced parentheses\n");
-        return;
+        // printf("Invalid range: Missing or misplaced parentheses\n");
+        return -1;
     }
 
     char *colon_pos = strchr(open_paren + 1, ':');
     if (!colon_pos)
     {
-        printf("Invalid range: Missing ':'\n");
-        return;
+        // printf("Invalid range: Missing ':'\n");
+        return -1;
     }
 
     int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1, graph);
     int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1, graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
-        printf("Invalid range\n");
-        return;
+        // printf("Invalid range\n");
+        return -1;
     }
     AddFormula(graph, first_cell, range_start, range_end, 9, formulaArray);
 
@@ -143,40 +169,41 @@ void min_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         }
     }
     arr[first_cell] = min_value;
+    return 1;
 }
 
-void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
+int maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell;
 
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
-        printf("Invalid destination cell\n");
-        return;
+        // printf("Invalid destination cell\n");
+        return -1;
     }
 
     char *open_paren = strchr(a + pos_equalto, '(');
     char *close_paren = strchr(a + pos_equalto, ')');
     if (!open_paren || !close_paren || close_paren <= open_paren + 1)
     {
-        printf("Invalid range: Missing or misplaced parentheses\n");
-        return;
+        // printf("Invalid range: Missing or misplaced parentheses\n");
+        return -1;
     }
 
     char *colon_pos = strchr(open_paren + 1, ':');
     if (!colon_pos)
     {
-        printf("Invalid range: Missing ':'\n");
-        return;
+        // printf("Invalid range: Missing ':'\n");
+        return -1;
     }
 
     int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1, graph);
     int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1, graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
-        printf("Invalid range\n");
-        return;
+        // printf("Invalid range\n");
+        return -1;
     }
     AddFormula(graph, first_cell, range_start, range_end, 10, formulaArray);
 
@@ -216,15 +243,16 @@ void maxfunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Grap
         }
     }
     arr[first_cell] = max_value;
+    return 1;
 }
 
-void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
+int avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
-        printf("Invalid destination cell\n");
-        return;
+        // printf("Invalid destination cell\n");
+        return -1;
     }
 
     char *open_paren = strchr(a + pos_equalto, '(');
@@ -232,23 +260,23 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
 
     if (!open_paren || !close_paren || close_paren <= open_paren + 1)
     {
-        printf("Invalid range: Missing or misplaced parentheses\n");
-        return;
+        // printf("Invalid range: Missing or misplaced parentheses\n");
+        return -1;
     }
 
     char *colon_pos = strchr(open_paren + 1, ':');
     if (!colon_pos)
     {
-        printf("Invalid range: Missing ':'\n");
-        return;
+        // printf("Invalid range: Missing ':'\n");
+        return -1;
     }
 
     int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1, graph);
     int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1, graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
-        printf("Invalid range\n");
-        return;
+        // printf("Invalid range\n");
+        return -1;
     }
     AddFormula(graph, first_cell, range_start, range_end, 11, formulaArray);
 
@@ -275,15 +303,16 @@ void avg_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
 
     int avg_value = (count > 0) ? (sum / count) : 0;
     arr[first_cell] = avg_value;
+    return 1;
 }
 
-void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
+int sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
-        printf("Invalid destination cell\n");
-        return;
+        // printf("Invalid destination cell\n");
+        return -1;
     }
 
     // Parse the range
@@ -291,23 +320,23 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     char *close_paren = strchr(a + pos_equalto, ')');
     if (!open_paren || !close_paren || close_paren <= open_paren + 1)
     {
-        printf("Invalid range: Missing or misplaced parentheses\n");
-        return;
+        // printf("Invalid range: Missing or misplaced parentheses\n");
+        return -1;
     }
 
     char *colon_pos = strchr(open_paren + 1, ':');
     if (!colon_pos)
     {
-        printf("Invalid range: Missing ':'\n");
-        return;
+        // printf("Invalid range: Missing ':'\n");
+        return -1;
     }
 
     int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1, graph);
     int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1, graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
-        printf("Invalid range\n");
-        return;
+        // printf("Invalid range\n");
+        return -1;
     }
 
     AddFormula(graph, first_cell, range_start, range_end, 12, formulaArray);
@@ -319,7 +348,7 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     int start_col = range_start % C;
     int end_row = range_end / C;
     int end_col = range_end % C;
-    printf("%d %d %d %d\n", start_row, start_col, end_row, end_col);
+    // printf("%d %d %d %d\n", start_row, start_col, end_row, end_col);
     int sum = 0;
 
     for (int row = start_row; row <= end_row; row++)
@@ -328,19 +357,19 @@ void sum_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
         {
             int idx = row * C + col;
             sum += arr[idx];
-            printf("%d %d %d\n", idx, row, col);
+            // printf("%d %d %d\n", idx, row, col);
         }
     }
     arr[first_cell] = sum;
+    return 1;
 }
 
-void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
+int stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
-        printf("Invalid destination cell\n");
-        return;
+        return -1;
     }
 
     // Parse the range
@@ -348,28 +377,23 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     char *close_paren = strchr(a + pos_equalto, ')');
     if (!open_paren || !close_paren || close_paren <= open_paren + 1)
     {
-        printf("Invalid range: Missing or misplaced parentheses\n");
-        return;
+        return -1;
     }
 
     char *colon_pos = strchr(open_paren + 1, ':');
     if (!colon_pos)
     {
-        printf("Invalid range: Missing ':'\n");
-        return;
+        return -1;
     }
 
     int range_start = cell_parser(a, C, R, open_paren - a + 1, colon_pos - a - 1, graph);
     int range_end = cell_parser(a, C, R, colon_pos - a + 1, close_paren - a - 1, graph);
     if (range_start == -1 || range_end == -1 || !validate_range(range_start, range_end, C))
     {
-        printf("Invalid range\n");
-        return;
+        return -1;
     }
 
     AddFormula(graph, first_cell, range_start, range_end, 13, formulaArray);
-
-    // Add the range to the graph
     AddRangeToGraph(graph, range_start, range_end, first_cell);
 
     int start_row = range_start / C;
@@ -377,48 +401,44 @@ void stdev_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     int end_row = range_end / C;
     int end_col = range_end % C;
 
-    int sum = 0;
-    int count = 0;
+    int values_count = (end_row - start_row + 1) * (end_col - start_col + 1);
+    int *values = (int *)malloc(values_count * sizeof(int));
+    if (!values)
+    {
+        return -1; // Memory allocation failed
+    }
 
+    int index = 0;
     for (int row = start_row; row <= end_row; row++)
     {
         for (int col = start_col; col <= end_col; col++)
         {
-            int idx = row * C + col;
-            sum += arr[idx];
-            count++;
+            values[index++] = arr[row * C + col];
         }
     }
-    int avg = sum / count;
-    int stdev_squared = 0;
-    for (int row = start_row; row <= end_row; row++)
-    {
-        for (int col = start_col; col <= end_col; col++)
-        {
-            int idx = row * C + col;
-            int prod = (arr[idx] - avg) * (arr[idx] - avg);
-            stdev_squared += prod;
-        }
-    }
-    int stdev = sqrt(stdev_squared / count);
-    arr[first_cell] = stdev;
+
+    // Compute standard deviation using the std function
+    arr[first_cell] = std(values, values_count);
+
+    free(values);
+    return 1;
 }
 
-void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
+int sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph, Formula *formulaArray)
 {
     int target_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (target_cell == -1)
     {
-        printf("Invalid destination cell\n");
-        return;
+        // printf("Invalid destination cell\n");
+        return -1;
     }
 
     char *open_paren = strchr(a + pos_equalto, '(');
     char *close_paren = strchr(a + pos_equalto, ')');
     if (!open_paren || !close_paren || close_paren <= open_paren + 1)
     {
-        printf("Invalid SLEEP syntax: Missing or misplaced parentheses\n");
-        return;
+        // printf("Invalid SLEEP syntax: Missing or misplaced parentheses\n");
+        return -1;
     }
 
     int sleep_value = -1;
@@ -432,7 +452,7 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         {
             printf("Referenced cell %d contains an error value\n", ref_cell);
             arr[target_cell] = INT_MIN; // Propagate error
-            return;
+            return 1;
         }
         graph->adjLists_head[ref_cell] = Addedge(target_cell, graph->adjLists_head[ref_cell]);
     }
@@ -447,7 +467,7 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
             arr[target_cell] = sleep_value;
             // printf("%d", ref_cell);
             AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
-            return;
+            return 1;
         }
     }
 
@@ -457,7 +477,7 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
         // printf("SLEEP value must evaluate to a positive integer\n");
         arr[target_cell] = sleep_value;
         AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
-        return;
+        return 1;
     }
 
     // printf("Parsed sleep value: %d\n", sleep_value);
@@ -465,4 +485,5 @@ void sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, G
     // Add formula and execute sleep
     AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
     arr[target_cell] = sleep_value;
+    return 1;
 }

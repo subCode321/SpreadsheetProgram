@@ -14,5 +14,5 @@ extern int old_op_type;
 extern int old_op_info1;
 extern int old_op_info2;
 extern int hasCycle;
-
+extern int invalidRange;
 #endif

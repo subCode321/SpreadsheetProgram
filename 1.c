@@ -9,6 +9,7 @@
 
 int NUM_CELLS;
 int hasCycle;
+int invalidRange;
 Formula *formulaArray;
 
 
@@ -126,6 +127,11 @@ int main(int argc, char *argv[])
         {
             if(hasCycle){
                 printf("[%.6f] (Circular dependency detected) ", time_taken);
+                hasCycle=0;
+            }
+            else if(invalidRange){
+                printf("[%.6f] (Invalid range) ", time_taken);
+                invalidRange=0;
             }
             else{
                 printf("[%.6f] (unrecognized command) ", time_taken);

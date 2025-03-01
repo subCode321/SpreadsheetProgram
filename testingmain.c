@@ -8,6 +8,8 @@
 #include <sys/time.h>
 
 int NUM_CELLS;
+int hasCycle;
+int invalidRange;
 Formula *formulaArray;
 
 void trim_spaces(char *str)
@@ -99,17 +101,37 @@ int main(int argc, char *argv[])
         else
         {
             status = parser(a, C, R, arr, graph, formulaArray);
-            printf("Parser returned: %d\n", status);
         }
 
         gettimeofday(&end, NULL);
+        double time_taken = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
+
         if (!output_disabled)
         {
             printer(currx, curry, arr, C, R);
         }
-        printf("[%.6f] (%s) \n",
-               (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0,
-               status > 0 ? "ok" : "unrecognized command");
+
+        if (status > 0)
+        {
+            printf("[%.6f] (ok) \n", time_taken);
+        }
+        else
+        {
+            if (hasCycle)
+            {
+                printf("[%.6f] (Circular dependency detected) \n", time_taken);
+                hasCycle = 0;
+            }
+            else if (invalidRange)
+            {
+                printf("[%.6f] (Invalid range) \n", time_taken);
+                invalidRange = 0;
+            }
+            else
+            {
+                printf("[%.6f] (unrecognized command) \n", time_taken);
+            }
+        }
     }
 
     fclose(inputFile);

@@ -430,9 +430,10 @@ int sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
         if (sleep_value == INT_MIN)
         {
             arr[target_cell] = INT_MIN;
-            return 1;
+            AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
         }
         graph->adjLists_head[ref_cell] = Addedge(target_cell, graph->adjLists_head[ref_cell]);
+        return 1;
     }
     else
     {

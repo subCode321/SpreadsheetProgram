@@ -8,8 +8,8 @@
 #include <sys/time.h>
 
 int NUM_CELLS;
-int hasCycle;
-int invalidRange;
+extern int hasCycle;
+extern int invalidRange;
 Formula *formulaArray;
 
 void trim_spaces(char *str)

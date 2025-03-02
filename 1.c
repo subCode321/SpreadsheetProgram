@@ -6,18 +6,38 @@
 #include "Graph.h"
 #include "string.h"
 #include <sys/time.h>
+#include <ctype.h>
 
 int NUM_CELLS;
 extern int hasCycle;
 extern int invalidRange;
 Formula *formulaArray;
 
+int is_number(const char *str)
+{
+    if (*str == '\0')
+        return 0;
+    while (*str)
+    {
+        if (!isdigit((unsigned char)*str))
+            return 0;
+        str++;
+    }
+    return 1;
+}
+
 int main(int argc, char *argv[])
 {
     struct timeval start, end;
-    gettimeofday(&start, NULL); // Start timing from the very beginning
+    gettimeofday(&start, NULL);
 
     if (argc != 3)
+    {
+        printf("Usage: %s <rows> <columns>\n", argv[0]);
+        return 1;
+    }
+
+    if (!is_number(argv[1]) || !is_number(argv[2]))
     {
         printf("Usage: %s <rows> <columns>\n", argv[0]);
         return 1;

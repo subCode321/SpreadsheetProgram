@@ -19,7 +19,6 @@
 This report describes the design and working of our spreadsheet system, built for the command line. The system supports basic arithmetic, functions like SUM, MIN, MAX, and tracks dependencies between cells to keep everything updated automatically.
 
 \section{Design Decisions}
-Key design choices we made for the system:
 \begin{itemize}
     \item \textbf{Graph-Based Dependencies:} Every cell is a node. Edges show which cells depend on which, making updates easy to track.
     \item \textbf{Linked List Adjacency Lists:} We use linked lists to store dependencies efficiently without wasting memory.
@@ -29,7 +28,7 @@ Key design choices we made for the system:
 \end{itemize}
 
 \section{Challenges Faced}
-During development, we ran into several challenges:
+
 \begin{itemize}
     \item \textbf{Cycle Detection:} Avoiding infinite loops from circular references between cells.
     \item \textbf{Memory Usage:} Handling big spreadsheets without slowing down.
@@ -39,7 +38,6 @@ During development, we ran into several challenges:
 \end{itemize}
 
 \section{Program Structure}
-The system is organized into the following files:
 \begin{itemize}
     \item \textbf{1.c:} The main program that handles inputs and runs the spreadsheet.
     \item \textbf{display.c/h:} Controls how the spreadsheet looks in the terminal and handles scrolling.
@@ -49,7 +47,6 @@ The system is organized into the following files:
     \item \textbf{Makefile:} Automates building and testing the project.
 \end{itemize}
 \section{Data Structures Used}
-We used the following data structures to build and manage the spreadsheet:
 
 \begin{itemize}
     \item \textbf{Graph (Adjacency List):} 
@@ -70,6 +67,33 @@ We used the following data structures to build and manage the spreadsheet:
     \item \textbf{DFS/Recursion Stack Arrays:} 
     Temporary arrays are used for depth-first search (DFS) during cycle detection and topological sorting.
 \end{itemize}
+\section{Test Suite}
+\subsection{Test Coverage}
+\begin{itemize}
+    \item \textbf{Basic Value Assignments:} Verifying that constant values can be assigned to cells and are stored correctly.
+    \item \textbf{Arithmetic Operations:} Validating calculations involving two operands (like addition, subtraction, multiplication, and division) with combinations of constants and cell references.
+    \item \textbf{Functions:} Ensuring functions like SUM, MIN, MAX, AVERAGE, and STDEV operate correctly over specified ranges.
+    \item \textbf{Range Validations:} Testing boundary cases of ranges, invalid ranges, and out-of-bounds access.
+    \item \textbf{Cycle Detection:} Confirming that cycles are correctly detected, rejected, and that previous stable states are restored.
+    \item \textbf{Dependency Propagation:} Verifying that updates propagate properly to all dependent cells when a referenced cell is modified.
+    \item \textbf{Error Handling:} Ensuring the system responds appropriately to invalid commands, invalid cell references, division by zero, and other error cases.
+\end{itemize}
+
+\subsection{Test Implementation}
+\begin{itemize}
+    \item Tests are written within \texttt{Tests.c}.
+    \item The tests use predefined sequences of inputs to simulate user interactions and check the state of the spreadsheet after each command.
+    \item Assertions are made on cell values to confirm expected outputs.
+    \item Edge cases are stressed, such as large range calculations, negative numbers, and sequential updates.
+\end{itemize}
+
+\subsection{Running the Tests}
+The test suite is integrated with the build system and can be executed using:
+\begin{lstlisting}
+make test
+\end{lstlisting}
+This will compile the program and execute all test cases, providing pass/fail results in the terminal.
+
 
 \section{Algorithms}
 

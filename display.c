@@ -72,7 +72,7 @@ void printer(int currx, int curry, int *arr, int C, int R)
     }
 }
 
-void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *graph)
+int scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *graph)
 {
     int flag = 0;
     if (a[0] == 'w' && a[1] == '\0')
@@ -172,7 +172,8 @@ void scroller(char *a, int *arr, int *currx, int *curry, int C, int R, Graph *gr
     }
     else
     {
-        printf("unrecognized command");
+        // printf("unrecognized command");
+        return -1;
     }
     if (flag)
     {

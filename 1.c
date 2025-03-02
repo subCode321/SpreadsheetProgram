@@ -98,11 +98,17 @@ int main(int argc, char *argv[])
         // Process commands regardless of output state
         if (a[0] == 'w' || a[0] == 'a' || (a[0] == 's' && a[1] == '\0') || (a[0] == 'd' && a[1] == '\0'))
         {
-            scroller(a, arr, &currx, &curry, C, R, graph);
+           int checker = scroller(a, arr, &currx, &curry, C, R, graph);
+           if(checker==-1){
+               status = -1;
+           }
         }
         else if (strncmp(a, "scroll_to ", 10) == 0)
         {
-            scroller(a, arr, &currx, &curry, C, R, graph);
+            int checker = scroller(a, arr, &currx, &curry, C, R, graph);
+            if(checker==-1){
+                status = -1;
+            }
         }
         else
         {

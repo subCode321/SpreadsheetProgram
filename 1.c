@@ -12,7 +12,6 @@ extern int hasCycle;
 extern int invalidRange;
 Formula *formulaArray;
 
-
 int main(int argc, char *argv[])
 {
     struct timeval start, end;
@@ -65,7 +64,12 @@ int main(int argc, char *argv[])
     {
         // Always show prompt regardless of output state
         printf("> ");
-        fgets(a, 100, stdin);
+        if (fgets(a, 100, stdin) == NULL)
+        {
+            // Handle the error, e.g., clear the buffer or print an error message
+            fprintf(stderr, "Error reading input\n");
+            return 1; // Or any appropriate error handling
+        }
         a[strcspn(a, "\n")] = '\0';
 
         if (a[0] == 'q' && a[1] == '\0')
@@ -98,15 +102,17 @@ int main(int argc, char *argv[])
         // Process commands regardless of output state
         if (a[0] == 'w' || a[0] == 'a' || (a[0] == 's' && a[1] == '\0') || (a[0] == 'd' && a[1] == '\0'))
         {
-           int checker = scroller(a, arr, &currx, &curry, C, R, graph);
-           if(checker==-1){
-               status = -1;
-           }
+            int checker = scroller(a, arr, &currx, &curry, C, R, graph);
+            if (checker == -1)
+            {
+                status = -1;
+            }
         }
         else if (strncmp(a, "scroll_to ", 10) == 0)
         {
             int checker = scroller(a, arr, &currx, &curry, C, R, graph);
-            if(checker==-1){
+            if (checker == -1)
+            {
                 status = -1;
             }
         }
@@ -131,15 +137,18 @@ int main(int argc, char *argv[])
         }
         else
         {
-            if(hasCycle){
+            if (hasCycle)
+            {
                 printf("[%.6f] (Circular dependency detected) ", time_taken);
-                hasCycle=0;
+                hasCycle = 0;
             }
-            else if(invalidRange){
+            else if (invalidRange)
+            {
                 printf("[%.6f] (Invalid range) ", time_taken);
-                invalidRange=0;
+                invalidRange = 0;
             }
-            else{
+            else
+            {
                 printf("[%.6f] (unrecognized command) ", time_taken);
             }
         }

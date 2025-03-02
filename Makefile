@@ -8,7 +8,7 @@ TARGET = $(TARGET_DIR)/spreadsheet
 
 OBJ_DIR = obj
 TEST_SRC = Tests.c
-TEST_EXEC = test  # The test binary will be named 'test'
+TEST_EXEC = test
 
 SRC = 1.c display.c Functions.c Graph.c Parser.c
 OBJ = $(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC))
@@ -34,6 +34,5 @@ report: $(REPORT_SRC)
 	pdflatex $(REPORT_SRC) && pdflatex $(REPORT_SRC)
 
 clean:
-	rm -f $(OBJ) $(TARGET) $(REPORT_PDF) *.aux *.log *.out
-
+	rm -f $(OBJ) $(TARGET) $(REPORT_PDF) $(TEST_EXEC) *.aux *.log *.out $(TEST_OBJ)
 .PHONY: all test report clean

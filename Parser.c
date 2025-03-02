@@ -540,7 +540,6 @@ int funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *
         formulaArray[first_cell].op_type = old_op_type;
         formulaArray[first_cell].op_info1 = old_op_info1;
         formulaArray[first_cell].op_info2 = old_op_info2;
-        printf("%d %d", first_cell, old_op_type);
         Addedge_formula(graph, first_cell, C, formulaArray);
         return -1;
     }

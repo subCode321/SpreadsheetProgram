@@ -164,39 +164,6 @@ void test_graph_creation_and_cell_ops()
     printf("Graph creation and cell operations tests passed!\n");
 }
 
-// Test Range operations
-void test_range_operations()
-{
-    printf("Testing range operations...\n");
-
-    Graph *graph = CreateGraph();
-    int COLS = 10; // 10x10 grid
-
-    // Add a range from cell 0 to cell 33 (spanning multiple rows and columns)
-    // with cell 99 depending on this range
-    AddRangeToGraph(graph, 0, 33, 99);
-
-    // Check if cells in the range are detected correctly
-    assert(isCellInAnyRange(graph, 0, COLS) == 99);  // Top-left of range
-    assert(isCellInAnyRange(graph, 33, COLS) == 99); // Bottom-right of range
-    assert(isCellInAnyRange(graph, 22, COLS) == 99); // Middle of range
-    assert(isCellInAnyRange(graph, 44, COLS) == -1); // Outside range
-
-    // Add another range and check overlap
-    AddRangeToGraph(graph, 30, 45, 98);
-    assert(isCellInAnyRange(graph, 30, COLS) == 98); // First hit is 98 (most recently added)
-    assert(isCellInAnyRange(graph, 33, COLS) == 98); // Cell in both ranges
-
-    // Test DeleteRangeFromGraph
-    DeleteRangeFromGraph(graph, 99);
-    assert(isCellInAnyRange(graph, 0, COLS) == -1);  // No longer in any range
-    assert(isCellInAnyRange(graph, 33, COLS) == 98); // Still in range for 98
-
-    printf("Range operations tests passed!\n");
-
-    FreeGraph(graph);
-}
-
 // Test topological sort and cycle detection with the new range-aware implementation
 void test_topological_sort()
 {

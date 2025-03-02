@@ -515,7 +515,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
 
             if (v1 == INT_MIN || v2 == INT_MIN)
             {
-                printf("  Error: One of the operands for cell %d is INT_MIN\n", cell);
                 arr[cell] = INT_MIN;
                 continue;
             }
@@ -643,7 +642,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
 
             if (sleep_value == INT_MIN)
             {
-                printf("  Error: Invalid sleep value in cell %d\n", cell);
                 arr[cell] = INT_MIN;
                 continue;
             }
@@ -688,7 +686,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
         default:
             // Handle unknown operation type
             arr[cell] = INT_MIN;
-            printf("  Error: Unknown operation type %d for cell %d\n", f.op_type, cell);
             break;
         }
     }

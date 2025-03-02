@@ -5,10 +5,10 @@
 #include <unistd.h> // For sleep function
 #include <limits.h>
 #include "Graph.h"
+#include "Functions.h"
 
 extern int hasCycle;
 
-// Inline simple functions for better performance
 int min2(int a, int b)
 {
     return (a < b) ? a : b;
@@ -241,6 +241,21 @@ Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray)
         // For range operations, just delete the range entry
         DeleteRangeFromGraph(graph, cell);
     }
+    else if (x.op_type == 14) // SLEEP operation
+    {
+        // If op_info1 is not the cell itself, it's a reference to another cell
+        if (x.op_info1 != cell)
+        {
+            graph->adjLists_head[x.op_info1] = Deletecell(cell, graph->adjLists_head[x.op_info1]);
+        }
+        // If op_info1 is the cell itself, it's a constant sleep - no edge to delete
+    }
+    else if (x.op_type == 15) // CONSTANT/CELL operation
+    {
+        // Delete edge from the referenced cell (op_info2)
+        graph->adjLists_head[x.op_info2] = Deletecell(cell, graph->adjLists_head[x.op_info2]);
+    }
+
     return NULL;
 }
 
@@ -262,61 +277,29 @@ Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray)
     // For operations 9-13 (range operations)
     else if (x.op_type >= 9 && x.op_type <= 13)
     {
-        // Instead of adding edges to every cell in the range,
-        // just store the range information
         int startCell = x.op_info1;
         int endCell = x.op_info2;
         AddRangeToGraph(graph, startCell, endCell, cell);
     }
-    return NULL;
-}
-
-// Check if a cell is affected by any ranges
-int isCellInAnyRange(Graph *graph, int cell, int COLS)
-{
-    Range *current = graph->ranges_head;
-
-    while (current != NULL)
+    // For operation 14 (SLEEP)
+    else if (x.op_type == 14)
     {
-        int startCell = current->startCell;
-        int endCell = current->endCell;
-
-        int startRow = startCell / COLS;
-        int startCol = startCell % COLS;
-        int endRow = endCell / COLS;
-        int endCol = endCell % COLS;
-
-        // Optimize by swapping if start > end
-        if (startRow > endRow)
+        // If op_info1 is not the cell itself, it's a reference to another cell
+        if (x.op_info1 != cell)
         {
-            int temp = startRow;
-            startRow = endRow;
-            endRow = temp;
+            graph->adjLists_head[x.op_info1] = Addedge(cell, graph->adjLists_head[x.op_info1]);
         }
-        if (startCol > endCol)
-        {
-            int temp = startCol;
-            startCol = endCol;
-            endCol = temp;
-        }
-
-        int cellRow = cell / COLS;
-        int cellCol = cell % COLS;
-
-        // Check if the cell is within the range
-        if (cellRow >= startRow && cellRow <= endRow &&
-            cellCol >= startCol && cellCol <= endCol)
-        {
-            return current->dependentCell;
-        }
-
-        current = current->next;
+        // If op_info1 is the cell itself, it's a constant sleep - no edge needed
+    }
+    // For operation 15 (CONSTANT/CELL)
+    else if (x.op_type == 15)
+    {
+        // Add edge from the referenced cell (op_info2)
+        graph->adjLists_head[x.op_info2] = Addedge(cell, graph->adjLists_head[x.op_info2]);
     }
 
-    return -1; // Not in any range
-}
-
-// Get nodes from the linked list
+    return NULL;
+} 
 void getNodesFromList(Cell *head, int *nodes, int *count)
 {
     Cell *current = head;
@@ -626,20 +609,22 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
                 break;
             case 13: // STDEV
             {
-                double mean = (double)sum / count;
-                double stdevSquared = 0;
+                int values_count = (endRow - startRow + 1) * (endCol - startCol + 1);
+                int *values = (int *)malloc(values_count * sizeof(int));
 
+                int index = 0;
                 for (int row = startRow; row <= endRow; row++)
                 {
                     for (int col = startCol; col <= endCol; col++)
                     {
-                        int idx = row * C + col;
-                        double diff = arr[idx] - mean;
-                        stdevSquared += diff * diff;
+                        values[index++] = arr[row * C + col];
                     }
                 }
 
-                arr[cell] = sqrt(stdevSquared / count);
+                // Compute standard deviation using the std function
+                arr[cell] = std(values, values_count);
+
+                free(values);
                 break;
             }
             }

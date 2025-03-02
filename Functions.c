@@ -424,14 +424,12 @@ int sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
     int sleep_value = -1;
     int ref_cell = cell_parser(a, C, R, open_paren - a + 1, close_paren - a - 1, graph);
 
-    // Determine whether it's a cell reference or a direct value
     if (ref_cell != -1)
     {
         sleep_value = arr[ref_cell];
         if (sleep_value == INT_MIN)
         {
-            printf("Referenced cell %d contains an error value\n", ref_cell);
-            arr[target_cell] = INT_MIN; // Propagate error
+            arr[target_cell] = INT_MIN;
             return 1;
         }
         graph->adjLists_head[ref_cell] = Addedge(target_cell, graph->adjLists_head[ref_cell]);
@@ -455,7 +453,6 @@ int sleep_func(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gr
         return 1;
     }
 
-    // Add formula and execute sleep
     AddFormula(graph, target_cell, ref_cell != -1 ? ref_cell : target_cell, sleep_value, 14, formulaArray);
     arr[target_cell] = sleep_value;
     return 1;

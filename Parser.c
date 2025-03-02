@@ -66,66 +66,7 @@ int cell_parser(char *a, int C, int R, int start, int end, Graph *graph)
 
     return C * cell_row + cell_col;
 }
-// void valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr,Graph *graph)
-// {
-//     int first_cell;
-//     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
-//     if (first_cell == -1)
-//     {
-//         printf("Invalid cell");
-//         return;
-//     }
-//     if (formulaArray[first_cell].op_type > 0)
-//     {
-//         Deleteedge(graph, first_cell, C);
 
-//     }
-//     int second_cell = -1;
-//     int is_cell = 0;
-//     if (isDigit(a[pos_equalto + 1]))
-//     {
-//         char *tmp = (char *)malloc(20 * sizeof(char));
-//         for(int i = pos_equalto + 1; i < pos_end; i++)
-//         {
-//             tmp[i - pos_equalto - 1] = a[i];
-//         }
-//         tmp[pos_end - pos_equalto - 1] = '\0';
-//         second_cell = atoi(tmp);
-//         free(tmp);
-//     }
-//     else
-//     {
-//         second_cell = cell_parser(a, C, R, pos_equalto + 1, pos_end - 1,graph);
-//         is_cell = 1;
-//     }
-
-//     if (second_cell == -1)
-//     {
-//         printf("Invalid\n");
-//         return;
-//     }
-//     if (is_cell == 0)
-//     {
-
-//         arr[first_cell] = second_cell;
-//         AddFormula(graph, Addcell(first_cell), second_cell, 0, 0);
-
-//             Recalc(graph, C, arr, first_cell);
-
-//         // printf("%d_Hello1 \n", first_cell);
-//     }
-//     else
-//     {
-//         int tmp = arr[second_cell];
-//         // printf("%d_Hello2 \n", first_cell);
-
-//         arr[first_cell] = tmp;
-//         graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-//         AddFormula(graph, Addcell(first_cell), second_cell, 0, 1);
-//         Recalc(graph, C, arr, first_cell);
-//     }
-
-// }
 int valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell;
@@ -150,7 +91,6 @@ int valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     int is_cell = 0;
     int is_negative = 0; // Flag to track if the value is negative
 
-    // Check if the value starts with a '+' or '-' sign
     if (a[pos_equalto + 1] == '-' || a[pos_equalto + 1] == '+')
     {
         if (a[pos_equalto + 1] == '-')
@@ -226,218 +166,6 @@ int valuefunc(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Gra
     return 1;
 }
 
-// void arth_op(char *a, int C, int R, int pos_equalto, int pos_end,int *arr, Graph *graph)
-// {
-//     int first_cell;
-//     int second_cell;
-//     int third_cell;
-//     int res = 0;
-//     int second_cell_check = 0;
-//     int third_cell_check = 0;
-
-//     // first_cell = cell_parser(a, C, R, 0, pos_equalto - 1,graph);
-//     // int op = -1;
-
-//     // if (formulaArray[first_cell].op_type > 0)
-//     // {
-//     //     Deleteedge(graph, first_cell, C);
-//     // }
-//     int foundadigit=0;
-//     int digitpos1 = -1;
-//     int digitpos2 = -1;
-
-//     int cellpos1 = -1;
-//     int cellpos2 = -1;
-//     int foundcell=0;
-//     int notvalid=0;
-//     char operation;
-//     int opindex = -1;
-//     for (int i = pos_equalto + 1; i < pos_end; i++)
-//     {
-//         if(isDigit(a[i])){
-//             foundadigit = 1;
-
-//         }
-//         if(isAlpha(a[i])){
-//             foundcell = 1;
-//         }
-//         if(a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/' ){
-//             if(foundadigit && !foundcell){
-//                 operation = a[i];
-//                 opindex = i;
-//             }
-//             else if(foundadigit && foundcell){
-//                 operation = a[i];
-//                 opindex =i;
-//             }
-//             else if(!foundadigit && foundcell){
-//                 notvalid =1;
-//             }
-//         }
-
-//         // if (a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/')
-//         // {
-//         //     op = i;
-//         //     break;
-//         // }
-//     }
-//     if(notvalid){
-//         printf("Invalid command");
-//         return;
-//     }
-//     //i have the op now, now i need to get operands
-//     int is1cell = 0;
-//     int is1no =0;
-//     int sign = 1;
-//     char s[100];
-//     char no[100];
-//     int l = 0;
-
-//     for(int i = pos_equalto + 1; i < opindex; i++){
-//         if(a[i]=='+'){
-//             ;
-//         }
-//         else if(a[i]=='-'){
-//             sign*=-1;
-//         }
-//         else if(!isDigit(a[i] && !isAlpha(a[i]))){
-//             notvalid =1;
-//             break;
-//         }
-//         else if(is1no && isAlpha(a[i])){
-//             notvalid =1;
-//             break;
-//         }
-//         else if(is1cell){
-//             s[l] = a[i];
-//             l++;
-//         }
-//         else if(is1no){
-//             no[l] = a[i];
-//             l++;
-//         }
-//         else if(isAlpha(a[i])){
-//             is1cell = 1;
-//             s[l] = a[i];
-//             if(l>5){
-//                 notvalid =1;
-//                 break;
-//             }
-//             l++;
-
-//         }
-//         else if(isDigit(a[i])){
-//             is1no = 1;
-//             no[l] = a[i];
-//             if(l>NUM_CELLS){
-//                 notvalid =1;
-//                 break;
-//             }
-//             l++;
-//         }
-//         else{
-//             ;
-//         }
-//     }
-//     if(notvalid){
-//         printf("Invalid command");
-//         return;
-//     }
-//     if(is1cell){
-//         //call cell parser here
-//     }
-
-//     //do same for 2nd operand
-
-//     for (int i = pos_equalto + 1; i < pos_end; i++)
-//     {
-//         if(isDigit(a[i])){
-
-//         }
-//         if (a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/')
-//         {
-//             op = i;
-//             break;
-//         }
-//     }
-
-//     if (isDigit(a[pos_equalto + 1]))
-//     {
-//         char *tmp2 = (char *)malloc(20 * sizeof(char));
-//         for (int i = pos_equalto + 1; i < op; i++)
-//         {
-//             tmp2[i - pos_equalto - 1] = a[i];
-//         }
-//         tmp2[op - pos_equalto - 1] = '\0';
-//         second_cell = atoi(tmp2);
-//         free(tmp2);
-//     }
-//     else
-//     {
-//         second_cell = cell_parser(a, C, R, pos_equalto + 1, op - 1,graph);
-//         second_cell_check = 1;
-//     }
-//     if(isDigit(a[op + 1]))
-//     {
-//         char *tmp3 = (char *)malloc(20 * sizeof(char));
-//         for (int i = op + 1; i < pos_end; i++)
-//         {
-//             tmp3[i - op - 1] = a[i];
-//         }
-//         tmp3[pos_end - op - 1] = '\0';
-
-//         third_cell = atoi(tmp3);
-//         free(tmp3);
-//     }
-//     else
-//     {
-//     third_cell = cell_parser(a, C, R, op + 1, pos_end - 1,graph);
-//     third_cell_check = 1;
-//     }
-
-//     if (first_cell == -1 || second_cell == -1 || third_cell == -1)
-//     {
-//         printf("Invalid command");
-//         return;
-//     }
-
-//     if (second_cell_check==0 && third_cell_check==0){
-//         res = arithmetic_eval(second_cell, third_cell, a[op]);
-//         arr[first_cell] = res;
-//         AddFormula(graph, Addcell(first_cell), res, 0, 0);
-//         Recalc(graph, C, arr, first_cell);
-//     }
-
-//     else if (second_cell_check==1 && third_cell_check==0){
-//         res = arithmetic_eval(arr[second_cell], third_cell, a[op]);
-
-//         int optype= return_optype(a[op]);
-//         arr[first_cell] = res;
-//         graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-//         AddFormula(graph, Addcell(first_cell), second_cell, third_cell, optype);
-//         Recalc(graph, C, arr, first_cell);
-//     }
-//     else if (second_cell_check==0 && third_cell_check==1){
-//         res = arithmetic_eval(second_cell, arr[third_cell], a[op]);
-
-//         int optype = return_optype(a[op]);
-//         arr[first_cell] = res;
-//         graph->adjLists_head[third_cell] = Addedge(first_cell, graph->adjLists_head[third_cell]);
-//         AddFormula(graph, Addcell(first_cell), third_cell, second_cell, optype+4);
-//         Recalc(graph, C, arr, first_cell);
-//     }
-//     else if (second_cell_check==1 && third_cell_check==1){
-//         res = arithmetic_eval(arr[second_cell], arr[third_cell], a[op]);
-
-//         int optype = return_optype(a[op]);
-//         arr[first_cell] = res;
-//         graph->adjLists_head[second_cell] = Addedge(first_cell, graph->adjLists_head[second_cell]);
-//         graph->adjLists_head[third_cell] = Addedge(first_cell, graph->adjLists_head[third_cell]);
-
-//         AddFormula(graph, Addcell(first_cell), second_cell, third_cell, optype+4);
-//         Recalc(graph, C, arr, first_cell);
-//     }
-// }
 int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
     int first_cell, second_cell, third_cell;
@@ -534,9 +262,6 @@ int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph
             }
             ii++;
         }
-        
-
-
     }
 
     // Parse second operand
@@ -614,7 +339,6 @@ int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph
         return -1;
     }
 
-    // Convert first operand
     if (is1cell)
     {
         second_cell = cell_parser(cell1, C, R, 0, l1 - 1, graph);
@@ -630,13 +354,11 @@ int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph
         second_cell = atoi(num1) * sign1;
     }
 
-    // Convert second operand
     if (is2cell)
     {
         third_cell = cell_parser(cell2, C, R, 0, l2 - 1, graph);
         if (third_cell == -1)
         {
-            // printf("%s", cell2);
             return -1;
         }
     }
@@ -646,7 +368,6 @@ int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph
         third_cell = atoi(num2) * sign2;
     }
 
-    // Parse destination cell
     first_cell = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
     if (first_cell == -1)
     {
@@ -658,7 +379,6 @@ int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph
     old_op_info1 = formulaArray[first_cell].op_info1;
     old_op_info2 = formulaArray[first_cell].op_info2;
 
-    // Clean up existing formula if any
     if (formulaArray[first_cell].op_type > 0)
     {
         Deleteedge(graph, first_cell, C,formulaArray);
@@ -714,94 +434,6 @@ int arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph
     }
     return 1;
 }
-// void arth_op(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph) {
-//     // Parse destination cell (e.g., "A1")
-//     int dest = cell_parser(a, C, R, 0, pos_equalto - 1, graph);
-//     if (dest == -1) {
-//         printf("Invalid command: Invalid destination cell\n");
-//         return;
-//     }
-
-//     if (formulaArray[dest].op_type > 0) {
-//         Deleteedge(graph, dest, C);
-//     }
-
-//     int i = pos_equalto + 1;
-//     if ((a[i] == '+' || a[i] == '-') && isDigit(a[i + 1])) {
-//         i++;
-//     }
-//     int op_index = -1;
-//     for (; i < pos_end; i++) {
-//         if (a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/') {
-//             op_index = i;
-//             break;
-//         }
-//     }
-//     if (op_index == -1) {
-//         printf("Invalid command: Missing operator\n");
-//         return;
-//     }
-
-//     int len1 = op_index - (pos_equalto + 1);
-//     char operand1_str[50];
-//     strncpy(operand1_str, a + pos_equalto + 1, len1);
-//     operand1_str[len1] = '\0';
-
-//     int operand1_value;
-//     int operand1_is_cell = 0;
-//     if (isDigit(operand1_str[0]) || operand1_str[0] == '+' || operand1_str[0] == '-') {
-//         operand1_value = atoi(operand1_str);
-//     } else {
-//         operand1_value = cell_parser(a, C, R, pos_equalto + 1, op_index - 1, graph);
-//         operand1_is_cell = 1;
-//     }
-
-//     int len2 = pos_end - (op_index + 1);
-//     char operand2_str[50];
-//     strncpy(operand2_str, a + op_index , len2);
-//     operand2_str[len2] = '\0';
-
-//     int operand2_value;
-//     int operand2_is_cell = 0;
-//     if (isDigit(operand2_str[0]) || operand2_str[0] == '+' || operand2_str[0] == '-') {
-//         operand2_value = atoi(operand2_str);
-//     } else {
-//         operand2_value = cell_parser(a, C, R, op_index + 1, pos_end - 1, graph);
-//         operand2_is_cell = 1;
-//     }
-
-//     if ((operand1_is_cell && operand1_value == -1) || (operand2_is_cell && operand2_value == -1)) {
-//         printf("Invalid command: Invalid operands\n");
-//         return;
-//     }
-
-//     char op = a[op_index];
-//     int res = 0;
-//     int optype = return_optype(op);
-
-//     if (!operand1_is_cell && !operand2_is_cell) {
-//         res = arithmetic_eval(operand1_value, operand2_value, op);
-
-//         AddFormula(graph, Addcell(dest), res, 0, 0);
-//     } else if (operand1_is_cell && !operand2_is_cell) {
-//         res = arithmetic_eval(arr[operand1_value], operand2_value, op);
-//         graph->adjLists_head[operand1_value] = Addedge(dest, graph->adjLists_head[operand1_value]);
-//         AddFormula(graph, Addcell(dest), operand1_value, operand2_value, optype);
-//     } else if (!operand1_is_cell && operand2_is_cell) {
-//         res = arithmetic_eval(operand1_value, arr[operand2_value], op);
-//         graph->adjLists_head[operand2_value] = Addedge(dest, graph->adjLists_head[operand2_value]);
-//         AddFormula(graph, Addcell(dest), operand2_value, operand1_value, optype + 4);
-//     } else {
-//         res = arithmetic_eval(arr[operand1_value], arr[operand2_value], op);
-//         graph->adjLists_head[operand1_value] = Addedge(dest, graph->adjLists_head[operand1_value]);
-//         graph->adjLists_head[operand2_value] = Addedge(dest, graph->adjLists_head[operand2_value]);
-//         AddFormula(graph, Addcell(dest), operand1_value, operand2_value, optype + 4);
-//     }
-//     Recalc(graph, C, arr, dest);
-//     arr[dest] = res;
-
-//     printf("first %d\nsecond %d\n%c\n%d\n", operand1_value, operand2_value, op, res);
-// }
 
 int funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *graph,Formula *formulaArray)
 {
@@ -893,13 +525,11 @@ int funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *
         }
         else
         {
-            // printf("Invalid function\n");
             return -1;
         }
     }
     else
     {
-        // printf("Invalid function\n");
         return -1;
     }
     if (hasCycle)
@@ -910,7 +540,7 @@ int funct(char *a, int C, int R, int pos_equalto, int pos_end, int *arr, Graph *
         formulaArray[first_cell].op_type = old_op_type;
         formulaArray[first_cell].op_info1 = old_op_info1;
         formulaArray[first_cell].op_info2 = old_op_info2;
-
+        printf("%d %d", first_cell, old_op_type);
         Addedge_formula(graph, first_cell, C, formulaArray);
         return -1;
     }
@@ -955,9 +585,6 @@ int parser(char *a, int C, int R, int *arr, Graph *graph,Formula *formulaArray)
         {
             foundadigit = 1;
         }
-        // if(isalplha(a[i])){
-        //     foundcell =1;
-        // }
         if ((a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/') && (foundadigit == 1))
         {
             arth_exp = 1;
@@ -980,7 +607,6 @@ int parser(char *a, int C, int R, int *arr, Graph *graph,Formula *formulaArray)
         if(checker == -1){
             return -1;
         }
-        // printf("Hello");
     }
     else if (arth_exp == 1)
     {
@@ -1007,76 +633,3 @@ int parser(char *a, int C, int R, int *arr, Graph *graph,Formula *formulaArray)
         return -1;
     }
 }
-
-// int parser(char *a, int C, int R, int *arr, Graph *graph)
-// {
-//     int pos_equalto = -1;
-//     int pos_end = -1;
-
-//     // Find position of '=' and end of input
-//     for (int i = 0; a[i] != '\0'; i++)
-//     {
-//         if (a[i] == '=' && pos_equalto == -1)
-//             pos_equalto = i;
-//         pos_end = i;
-//     }
-//     pos_end++;
-
-//     if (pos_equalto == -1)
-//     {
-//         printf("Invalid command: Missing '='\n");
-//         return -1;
-//     }
-
-//     int value = 0;
-//     int arth_exp = 0;
-//     int func = 0;
-
-//     // Detect type of input
-//     for (int i = pos_equalto + 1; i < pos_end; i++)
-//     {
-//         if (a[i] == '(')
-//         {
-//             func = 1;
-//             break;
-//         }
-//         if (a[i] == '+' || a[i] == '-' || a[i] == '*' || a[i] == '/')
-//         {
-//             arth_exp = 1;
-//             break;
-//         }
-//     }
-
-//     // Debugging output
-//     printf("Input: %s\n", a);
-//     printf("Detected type: ");
-//     if (value) printf("Value assignment\n");
-//     if (arth_exp) printf("Arithmetic expression\n");
-//     if (func) printf("Function\n");
-
-//     if (func == 1 && arth_exp == 1)
-//     {
-//         printf("Invalid input: Cannot be both function and arithmetic expression\n");
-//         return -1;
-//     }
-
-//     if (func == 0 && arth_exp == 0)
-//     {
-//         value = 1;
-//     }
-
-//     if (value == 1)
-//     {
-//         valuefunc(a, C, R, pos_equalto, pos_end, arr, graph);
-//     }
-//     else if (arth_exp == 1)
-//     {
-//         arth_op(a, C, R, pos_equalto, pos_end, arr, graph);
-//     }
-//     else if (func == 1)
-//     {
-//         funct(a, C, R, pos_equalto, pos_end, arr, graph);
-//     }
-
-//     return 1;
-// }

@@ -4,99 +4,133 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{geometry}
-\geometry{a4paper, margin=1in}
+\geometry{a4paper, margin=0.8in}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{1em}
+\setlength{\parskip}{0.8em}
 
-\title{Software Design Report}
-\author{Project Team}
-\date{\today}
+\title{Spreadsheet System Design Report}
+\author{Vani Gupta (2023CS10126) \and Neelkanth Mishra (2023CS10022) \and Soubhagya Mohapatra (2023EE31148)}
 
 \begin{document}
 
 \maketitle
 
 \section{Introduction}
-This document provides an overview of the design decisions, challenges faced, program structure, edge cases, and error handling of our software system. The document includes a diagram illustrating key files, data structures, and functions. Additionally, the report contains links to the GitHub repository and a video demonstration.
+This report describes the design and working of our spreadsheet system, built for the command line. The system supports basic arithmetic, functions like SUM, MIN, MAX, and tracks dependencies between cells to keep everything updated automatically.
 
 \section{Design Decisions}
-Our software is structured as a command-line spreadsheet application that supports arithmetic operations, functions like SUM, MIN, MAX, and dependency tracking. The key design decisions include:
+Key design choices we made for the system:
 \begin{itemize}
-    \item Using a graph-based structure to handle cell dependencies.
-    \item Implementing an AVL tree to maintain dependencies efficiently.
-    \item Enabling a user-friendly interface with interactive navigation.
-    \item Using a modular approach with separate files for display, computation, and graph logic.
-    \item Incorporating robust error handling mechanisms to handle invalid user input and system errors.
-    \item Ensuring efficient memory management for large datasets.
+    \item \textbf{Graph-Based Dependencies:} Every cell is a node. Edges show which cells depend on which, making updates easy to track.
+    \item \textbf{Linked List Adjacency Lists:} We use linked lists to store dependencies efficiently without wasting memory.
+    \item \textbf{Modular Code:} The code is split into clear sections—display handling, parsing, formulas, and graph management.
+    \item \textbf{Error Handling:} We handle bad inputs and block circular dependencies to keep the system stable.
+    \item \textbf{Memory Management:} We allocate and free memory carefully to handle large spreadsheets smoothly.
 \end{itemize}
 
 \section{Challenges Faced}
-During the development, we encountered several challenges:
+During development, we ran into several challenges:
 \begin{itemize}
-    \item Implementing a cycle detection mechanism in formula dependencies.
-    \item Managing memory efficiently to handle large spreadsheets.
-    \item Ensuring correct parsing of user inputs with a robust error-handling mechanism.
-    \item Optimizing performance while recalculating cell values upon dependency updates.
-    \item Designing a user-friendly display and navigation system within the constraints of a terminal-based UI.
+    \item \textbf{Cycle Detection:} Avoiding infinite loops from circular references between cells.
+    \item \textbf{Memory Usage:} Handling big spreadsheets without slowing down.
+    \item \textbf{Formula Parsing:} Parsing and understanding complex expressions accurately.
+    \item \textbf{User Interface:} Making navigation and control smooth in a terminal-based environment.
+    \item \textbf{Live Updates:} Ensuring dependent cells always show the latest correct values.
 \end{itemize}
 
 \section{Program Structure}
-Our software consists of the following key files:
+The system is organized into the following files:
 \begin{itemize}
-    \item \textbf{1.c} - The main entry point of the program.
-    \item \textbf{display.c, display.h} - Handles rendering of the spreadsheet.
-    \item \textbf{Functions.c, Functions.h} - Implements arithmetic and aggregate functions.
-    \item \textbf{Graph.c, Graph.h} - Manages the dependency graph.
-    \item \textbf{Parser.c, Parser.h} - Parses user commands.
-    \item \textbf{Makefile} - Provides automated build commands.
+    \item \textbf{1.c:} The main program that handles inputs and runs the spreadsheet.
+    \item \textbf{display.c/h:} Controls how the spreadsheet looks in the terminal and handles scrolling.
+    \item \textbf{Functions.c/h:} Contains functions like SUM, MIN, MAX, AVERAGE, and others.
+    \item \textbf{Graph.c/h:} Manages the dependency graph and checks for cycles.
+    \item \textbf{Parser.c/h:} Breaks down user commands and runs the right operations.
+    \item \textbf{Makefile:} Automates building and testing the project.
+\end{itemize}
+\section{Data Structures Used}
+We used the following data structures to build and manage the spreadsheet:
+
+\begin{itemize}
+    \item \textbf{Graph (Adjacency List):} 
+    Each cell is a node, and its dependencies are stored as linked lists. This makes adding, deleting, and traversing dependencies efficient.
+    
+    \item \textbf{Linked Lists:} 
+    Used in the adjacency list to manage dependencies for each cell without extra memory overhead.
+
+    \item \textbf{Range List:} 
+    For functions like SUM, MIN, MAX over cell ranges, we store ranges as a linked list of range nodes. Each range keeps track of its start and end cells and which cell depends on that range.
+
+    \item \textbf{Formula Array:} 
+    An array that stores the formula or operation for each cell. It tracks what kind of operation the cell holds and which cells or constants it uses.
+
+    \item \textbf{Integer Array (Spreadsheet Data):} 
+    The actual values of the spreadsheet are stored in a flat integer array, with cells indexed based on row and column.
+
+    \item \textbf{DFS/Recursion Stack Arrays:} 
+    Temporary arrays are used for depth-first search (DFS) during cycle detection and topological sorting.
 \end{itemize}
 
+\section{Algorithms}
+
+\subsection{Dependency Updates}
+When you change a cell, every cell that depends on it needs to be updated too. Here's how we handle that:
+\begin{itemize}
+    \item We use DFS (Depth-First Search) starting from the changed cell to find all affected cells.
+    \item We build a topological order of these cells so that no cell gets updated before the ones it depends on.
+    \item Finally, we recalculate each cell in this order to update the whole chain properly.
+\end{itemize}
 \begin{figure}[h]
     \centering
-    
-    \caption{Software Structure}
-    \label{fig:diagram}
+    \includegraphics[width=0.4\textwidth]{data_flow.png}
+    \caption{Data Flow in the Spreadsheet}
 \end{figure}
 
-\section{Edge Cases and Error Handling}
-Our test suite covers various edge cases, including:
+\subsection{Cycle Detection}
+We must ensure there are no loops (cycles) where cells depend on each other forever. Here's how we check:
 \begin{itemize}
-    \item Handling division by zero.
-    \item Detecting and preventing circular dependencies.
-    \item Managing large spreadsheets efficiently.
-    \item Correctly parsing invalid inputs and providing meaningful error messages.
-    \item Handling negative numbers and large integer values.
-    \item Ensuring correctness in dependency-based calculations with deeply nested formulas.
-    \item Validating correct input formats and rejecting malformed expressions.
+    \item We run a DFS whenever formulas are updated.
+    \item If we find that we revisit a cell while still on the same DFS path, that’s a cycle.
+    \item If a cycle is found, we cancel the operation and tell the user.
 \end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\textwidth]{cycle_detection.png}
+    \caption{Cycle Detection Mechanism}
+\end{figure}
 
-\section{Performance Considerations}
-To ensure efficiency and responsiveness, we employed:
+\subsection{Topological Sorting}
+To update cells in the right order:
 \begin{itemize}
-    \item AVL trees for efficient dependency tracking and updates.
-    \item A queue-based topological sorting approach to avoid redundant calculations.
-    \item Caching mechanisms to optimize repeated computations and minimize redundant work.
-    \item Asynchronous computation for large formula evaluations to prevent UI lag.
+    \item We use DFS to explore all cells affected by a change.
+    \item As we finish visiting cells, we add them to a list in reverse order.
+    \item This list gives us the correct order to update cells without missing dependencies.
 \end{itemize}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.4\textwidth]{topological_sorting.png}
+    \caption{Topological Sorting}
+\end{figure}
 
-\section{Build and Execution}
-The software can be compiled and executed using the provided Makefile:
+\section{Build and Run}
+To compile and run the program:
 \begin{lstlisting}
-make        # Compiles and generates the executable
-make test   # Runs all test cases
-make report # Generates report.pdf from LaTeX source
-\end{lstlisting}
-
-To run the application:
-\begin{lstlisting}
-./sheet 10 10  # Launches a 10x10 spreadsheet
+make        # Build the program
+make test   # Run test cases
+./spreadsheet 10 10  # Start a 10x10 spreadsheet
 \end{lstlisting}
 
 \section{Conclusion}
-Our software successfully implements a functional spreadsheet system with arithmetic operations, functions, and dependency management. The modular architecture ensures maintainability and scalability, while robust error handling enhances usability. Future improvements could include a GUI-based interface, additional functions, and integration with external data sources.
+Our spreadsheet system successfully manages dynamic updates, formulas, and dependencies while staying responsive in the terminal. Future improvements could include:
+\begin{itemize}
+    \item Adding a graphical user interface (GUI).
+    \item Supporting more advanced statistical functions.
+    \item Improving performance for very large spreadsheets.
+    \item Adding multithreading to speed up heavy computations.
+\end{itemize}
 
-\section{Links}
-\textbf{Video Demo}: \href{https://example.com/demo}{Watch Here}\\
+\section{Resources}
+\textbf{Demo Video}: \href{https://example.com/demo}{Watch Here}\\
 \textbf{GitHub Repository}: \href{https://github.com/example/repo}{View Here}
 
 \end{document}

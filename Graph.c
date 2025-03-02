@@ -243,12 +243,7 @@ Cell *Deleteedge(Graph *graph, int cell, int COLS, Formula *formulaArray)
     }
     else if (x.op_type == 14) // SLEEP operation
     {
-        // If op_info1 is not the cell itself, it's a reference to another cell
-        if (x.op_info1 != cell)
-        {
-            graph->adjLists_head[x.op_info1] = Deletecell(cell, graph->adjLists_head[x.op_info1]);
-        }
-        // If op_info1 is the cell itself, it's a constant sleep - no edge to delete
+        graph->adjLists_head[x.op_info1] = Deletecell(cell, graph->adjLists_head[x.op_info1]);
     }
     else if (x.op_type == 15) // CONSTANT/CELL operation
     {
@@ -299,7 +294,7 @@ Cell *Addedge_formula(Graph *graph, int cell, int COLS, Formula *formulaArray)
     }
 
     return NULL;
-} 
+}
 void getNodesFromList(Cell *head, int *nodes, int *count)
 {
     Cell *current = head;
@@ -656,7 +651,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
             arr[cell] = sleep_value;
             break;
         }
-        case 15: //CELL=CONSTANT/CELL
+        case 15: // CELL=CONSTANT/CELL
         {
             int v1 = f.op_info1;
             int v2 = arr[f.op_info2];
@@ -681,7 +676,6 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
             arr[cell] = arithmetic_eval2(v1, v2, op);
             break;
         }
-
 
         default:
             // Handle unknown operation type

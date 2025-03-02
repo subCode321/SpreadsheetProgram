@@ -468,7 +468,7 @@ void Recalc(Graph *graph, int C, int *arr, int startCell, Formula *formulaArray)
         switch (f.op_type)
         {
         case 0: // CELL=CONSTANT
-            arr[cell] = (f.op_info1 == INT_MIN) ? (printf("  Error: Cell %d has an invalid constant value (INT_MIN)\n", cell), INT_MIN) : f.op_info1;
+            arr[cell] = (f.op_info1 == INT_MIN) ? INT_MIN : f.op_info1;
             break;
 
         case 1: // CELL=CELL+CONSTANT
